@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1e1b4b" />
+  <title>برا السالفة — رفيق</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6366f1; --primary-dark: #4338ca;
+      --accent: #f59e0b; --accent-dark: #b45309;
+      --danger: #ef4444; --danger-dark: #b91c1c;
+      --success: #10b981; --success-dark: #047857;
+      --bg: #1e1b4b; 
+    }
+    
+    body {
+      background: var(--bg);
+      background-image: radial-gradient(circle at top left, #312e81 0%, transparent 70%);
+      min-height: 100vh; font-family: 'Tajawal', sans-serif;
+      color: white; margin: 0; display: flex; flex-direction: column;
+      user-select: none; -webkit-font-smoothing: antialiased;
+    }
+
+    .btn-3d {
+      background: var(--primary); color: white; border: none; border-radius: 16px;
+      padding: 16px; font-size: 20px; font-weight: 900; font-family: 'Tajawal', sans-serif;
+      box-shadow: 0 6px 0 var(--primary-dark), 0 10px 15px rgba(0,0,0,0.3);
+      cursor: pointer; transition: all 0.1s; text-align: center; display: inline-block;
+    }
+    .btn-3d:active { transform: translateY(6px); box-shadow: 0 0px 0 var(--primary-dark), 0 2px 5px rgba(0,0,0,0.3); }
+    .btn-3d.danger { background: var(--danger); box-shadow: 0 6px 0 var(--danger-dark), 0 10px 15px rgba(0,0,0,0.3); }
+    .btn-3d.danger:active { box-shadow: 0 0px 0 var(--danger-dark); }
+    .btn-3d.success { background: var(--success); box-shadow: 0 6px 0 var(--success-dark), 0 10px 15px rgba(0,0,0,0.3); }
+    .btn-3d.success:active { box-shadow: 0 0px 0 var(--success-dark); }
+
+    .top-bar { padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 100; }
+    .btn-back { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 24px; border-radius: 50px; font-weight: 800; box-shadow: 0 4px 0 rgba(0,0,0,0.3); transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
+    .btn-back:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.4); }
+    .btn-back:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0.3); }
+
+    .main-container { flex: 1; display: flex; flex-direction: column; padding: 80px 20px 20px; max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .screen { display: none; flex-direction: column; flex: 1; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .screen.active { display: flex; }
+    @keyframes popIn { from { opacity:0; transform: scale(0.9); } to { opacity:1; transform: scale(1); } }
+
+    .title { font-size: 36px; font-weight: 900; text-align: center; margin-bottom: 24px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); line-height: 1.2; }
+
+    .card-3d { background: #2e2a5d; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 8px 0 #1e1b4b, inset 0 2px 0 rgba(255,255,255,0.1); }
+    .card-title { font-size: 20px; font-weight: 900; margin-bottom: 16px; color: #a5b4fc; }
+
+    .stepper { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 12px; margin-bottom: 12px; }
+    .step-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; font-size: 24px; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; }
+    .step-btn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0); }
+    .step-val { font-size: 32px; font-weight: 900; text-align: center; width: 60px; }
+
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-height: 250px; overflow-y: auto; padding-bottom: 10px; }
+    .cat-grid::-webkit-scrollbar { width: 0; }
+    .cat-btn { background: linear-gradient(135deg, #3730a3, #312e81); border: none; border-radius: 16px; padding: 16px 8px; text-align: center; cursor: pointer; box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 6px 0 #1e1b4b, 0 10px 10px rgba(0,0,0,0.4); transition: 0.1s; color: white; display:flex; flex-direction:column; align-items:center; }
+    .cat-btn.selected { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 6px 0 var(--primary-dark), 0 10px 15px rgba(0,0,0,0.5); transform: translateY(-2px); }
+    .cat-btn:active { transform: translateY(6px) !important; box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 0px 0 #1e1b4b, 0 2px 5px rgba(0,0,0,0.4) !important; }
+    .cat-icon { font-size: 42px; margin-bottom: 8px; filter: drop-shadow(0 6px 4px rgba(0,0,0,0.6)); }
+    .cat-text { font-size: 15px; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .toggle-switch { width: 56px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 50px; position: relative; cursor: pointer; transition: 0.3s; }
+    .toggle-switch.on { background: var(--success); }
+    .toggle-switch::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle-switch.on::after { transform: translateX(24px); }
+
+    .names-list { display: flex; flex-direction: column; gap: 16px; max-height: 50vh; overflow-y: auto; padding: 10px 0; }
+    .name-input { background: rgba(0,0,0,0.2); border: none; border-radius: 16px; padding: 18px 24px; color: white; font-size: 20px; font-weight: 800; font-family: 'Tajawal', sans-serif; width: 100%; box-sizing: border-box; box-shadow: inset 0 4px 8px rgba(0,0,0,0.3); outline: none; transition: 0.2s;}
+    .name-input:focus { background: rgba(0,0,0,0.4); box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), 0 0 0 2px var(--primary); }
+
+    .reveal-card { background: #4f46e5; border-radius: 32px; width: 100%; max-width: 400px; aspect-ratio: 3/4; max-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin: 0 auto; box-shadow: 0 12px 0 #3730a3, 0 20px 40px rgba(0,0,0,0.5); cursor: pointer; transition: 0.1s; position: relative; }
+    .reveal-card:active { transform: translateY(6px); box-shadow: 0 6px 0 #3730a3, 0 10px 20px rgba(0,0,0,0.5); }
+    .card-content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; width: 100%; box-sizing:border-box; transition: 0.3s; }
+    .reveal-card.is-revealed { cursor: default; }
+    .reveal-card.is-revealed:active { transform: none; box-shadow: 0 12px 0 #3730a3, 0 20px 40px rgba(0,0,0,0.5); }
+    .reveal-card.theme-danger { background: #e11d48; box-shadow: 0 12px 0 #9f1239, 0 20px 40px rgba(0,0,0,0.5); }
+    .reveal-card.theme-success { background: #059669; box-shadow: 0 12px 0 #047857, 0 20px 40px rgba(0,0,0,0.5); }
+    .tap-icon { font-size: 80px; margin-bottom: 20px; animation: bounce 1s infinite alternate; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+
+    .timer-circle { width: 280px; height: 280px; border-radius: 50%; border: 16px solid rgba(0,0,0,0.2); border-top-color: var(--primary); margin: 40px auto; display: flex; align-items: center; justify-content: center; }
+    .timer-circle.active { animation: spin 60s linear infinite; }
+    .timer-inner { animation: spin 60s linear infinite reverse; display: flex; align-items: center; justify-content: center; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .timer-time { font-size: 72px; font-weight: 900; font-family: monospace; text-shadow: 0 6px 0 rgba(0,0,0,0.3); }
+
+    .voting-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px; max-height: 45vh; overflow-y: auto; padding-bottom: 20px; }
+
+  </style>
+</head>
+<body>
+  <div class="top-bar"><button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button></div>
+
+  <div class="main-container">
+    
+    <!-- TUTORIAL SCREEN -->
+    <div id="screen-tutorial" class="screen active">
+      <div style="text-align:center;">
+        <div style="font-size: 60px; margin-bottom: 20px; animation: bounce 2s infinite alternate;">🕵️‍♂️</div>
+        <h1 class="title" style="margin-bottom: 10px;">كيف تلعب برا السالفة؟</h1>
+        <p style="opacity:0.7; font-size:18px;">لعبة ذكاء واستنتاج، لا تنصاد!</p>
+      </div>
+      <ul style="text-align: right; margin: 20px 0; font-size: 18px; line-height: 1.6; opacity: 0.9; padding:0;">
+        <li style="margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; list-style: none; display: flex; gap: 10px; align-items: flex-start;"><span>🤫</span> <div><strong>الهدف:</strong> كل اللاعبين يعرفون "السالفة" (الكلمة السرية)، إلا لاعب واحد (برا السالفة) ما يعرفها!</div></li>
+        <li style="margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; list-style: none; display: flex; gap: 10px; align-items: flex-start;"><span>🗣️</span> <div><strong>الأسئلة:</strong> كل لاعب يسأل الثاني سؤال ذكي يثبت أنه يعرف السالفة، بس بدون ما يفضحها ويوضحها للي "برا السالفة".</div></li>
+        <li style="margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; list-style: none; display: flex; gap: 10px; align-items: flex-start;"><span>🕵️‍♂️</span> <div><strong>إذا كنت برا السالفة:</strong> حاول تستنتج الكلمة من إجاباتهم، وجاوب بذكاء كأنك عارفها عشان ما يكشفونك.</div></li>
+        <li style="margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; list-style: none; display: flex; gap: 10px; align-items: flex-start;"><span>🗳️</span> <div><strong>التصويت:</strong> بالنهاية تصوتون مين تتوقعون أنه "برا السالفة".</div></li>
+      </ul>
+      <button class="btn-3d success" style="margin-top:auto;" onclick="showScreen('setup')">فهمت، ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- SETUP -->
+    <div id="screen-setup" class="screen">
+      <h1 class="title">برا السالفة 🕵️‍♂️</h1>
+      
+      <div class="card-3d">
+        <div class="card-title">👥 عدد اللاعبين واللقافة</div>
+        <div class="stepper">
+          <button class="step-btn" onclick="adjPlayers(-1)">-</button>
+          <div><div class="step-val" id="val-players">5</div><div style="font-size:14px; opacity:0.6; text-align:center;">لاعبين</div></div>
+          <button class="step-btn" onclick="adjPlayers(1)">+</button>
+        </div>
+        <div class="stepper" style="margin-bottom:0; background:rgba(239,68,68,0.2);">
+          <button class="step-btn" onclick="adjImpostors(-1)">-</button>
+          <div><div class="step-val" id="val-impostors" style="color:#fca5a5;">1</div><div style="font-size:14px; opacity:0.8; text-align:center; color:#fca5a5;">برا السالفة</div></div>
+          <button class="step-btn" onclick="adjImpostors(1)">+</button>
+        </div>
+      </div>
+
+      <div class="card-3d">
+        <div class="card-title">🎲 اختاروا سالفتكم</div>
+        <div class="cat-grid">
+          <button class="cat-btn selected" onclick="selectCat('animals', this)"><div class="cat-icon">🦁</div><div class="cat-text">حيوانات</div></button>
+          <button class="cat-btn" onclick="selectCat('food', this)"><div class="cat-icon">🍔</div><div class="cat-text">أكلات</div></button>
+          <button class="cat-btn" onclick="selectCat('places', this)"><div class="cat-icon">🗼</div><div class="cat-text">أماكن</div></button>
+          <button class="cat-btn" onclick="selectCat('jobs', this)"><div class="cat-icon">👨‍⚕️</div><div class="cat-text">وظائف</div></button>
+          <button class="cat-btn" onclick="selectCat('tech', this)"><div class="cat-icon">📱</div><div class="cat-text">تقنية</div></button>
+          <button class="cat-btn" onclick="selectCat('celebs', this)"><div class="cat-icon">⭐</div><div class="cat-text">مشاهير</div></button>
+          <button class="cat-btn" onclick="selectCat('hobbies', this)"><div class="cat-icon">🎨</div><div class="cat-text">هوايات</div></button>
+          <button class="cat-btn" onclick="selectCat('school', this)"><div class="cat-icon">🎒</div><div class="cat-text">مدرسة</div></button>
+          <button class="cat-btn" onclick="selectCat('nature', this)"><div class="cat-icon">🌲</div><div class="cat-text">طبيعة</div></button>
+          <button class="cat-btn" onclick="selectCat('brands', this)"><div class="cat-icon">🛍️</div><div class="cat-text">براندات</div></button>
+          <button class="cat-btn" onclick="selectCat('jordan', this)"><div class="cat-icon">🇯🇴</div><div class="cat-text">الأردن</div></button>
+          <button class="cat-btn" onclick="selectCat('arab', this)"><div class="cat-icon">🌍</div><div class="cat-text">عرب</div></button>
+          <button class="cat-btn" style="grid-column: span 3;" onclick="selectCat('random', this)"><div class="cat-icon">❓</div><div class="cat-text">عشوائي (منوع)</div></button>
+        </div>
+      </div>
+
+      <div class="card-3d" style="padding:16px 24px;">
+        <div class="toggle-row">
+          <div style="font-size:18px; font-weight:800;">💡 تلميح للي برا السالفة</div>
+          <div class="toggle-switch on" id="hint-toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row" style="margin-bottom:0;">
+          <div style="font-size:18px; font-weight:800;">⏳ مؤقت النقاش (3 دقائق)</div>
+          <div class="toggle-switch on" id="timer-toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <button class="btn-3d" style="margin-top:auto;" onclick="goToNames()">التالي ➡</button>
+    </div>
+
+    <!-- NAMES -->
+    <div id="screen-names" class="screen">
+      <h1 class="title">أسماء الشلة ✍️</h1>
+      <p style="text-align:center; opacity:0.8; margin-top:-10px;">اكتبوا أسماءكم عشان التصويت الفردي</p>
+      <div class="names-list" id="names-list"></div>
+      <button class="btn-3d" style="margin-top:auto;" onclick="startGame()">ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- REVEAL -->
+    <div id="screen-reveal" class="screen">
+      <div style="text-align:center; font-size:24px; font-weight:800; color:rgba(255,255,255,0.6); margin-bottom:20px;">
+        دور اللاعب: <span id="rev-player-name" style="color:var(--accent); font-size:40px; display:block; text-shadow:0 4px 0 rgba(0,0,0,0.3);">أحمد</span>
+      </div>
+      <div class="reveal-card" id="reveal-card" onclick="revealRole()">
+        <div class="card-content" id="card-content">
+          <div class="tap-icon">👆</div>
+          <div style="font-size:36px; font-weight:900;">المس لمعرفة دورك</div>
+          <div style="font-size:18px; opacity:0.7; margin-top:16px;">لا تخلي أحد يشوف شاشتك!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMER -->
+    <div id="screen-timer" class="screen">
+      <h1 class="title" style="font-size:50px; margin-bottom:10px;">وقت السوالف! 🗣️</h1>
+      
+      <div style="background:rgba(255,255,255,0.1); border-radius:16px; padding:20px; text-align:center; margin:10px 0;">
+        <div style="font-size:24px; font-weight:800; color:var(--accent);" id="random-ask-text">مين يسأل مين؟</div>
+        <button class="btn-3d" style="font-size:16px; padding:10px 20px; margin-top:16px;" onclick="generateQuestioner()">اختار عشوائي 🎲</button>
+      </div>
+
+      <div class="timer-circle" id="timer-circle" style="margin: 20px auto; width: 220px; height: 220px;">
+        <div class="timer-inner"><div class="timer-time" style="font-size:60px;" id="timer-display">--:--</div></div>
+      </div>
+      <button class="btn-3d danger" style="margin-top:auto;" onclick="startVotingPhase()">إنهاء والذهاب للتصويت 🛑</button>
+    </div>
+
+    <!-- VOTE -->
+    <div id="screen-vote" class="screen">
+      <h1 class="title">تصويت اللاعبين 🗳️</h1>
+      <div style="text-align:center; font-size:20px; opacity:0.9; margin-bottom:10px;">
+        دور اللاعب <strong style="color:var(--accent); font-size:28px;" id="vote-voter-name">أحمد</strong> في التصويت
+      </div>
+      <p style="text-align:center; opacity:0.7; font-size:16px;">مين تتوقع أنه برا السالفة؟ (مرر الجهاز لك)</p>
+      <div class="voting-grid" id="voting-grid"></div>
+    </div>
+
+    <!-- RESULT -->
+    <div id="screen-result" class="screen">
+      <div style="text-align:center; margin-top:20px;">
+        <div style="font-size: 80px; margin-bottom:10px;" id="res-icon">🎉</div>
+        <h1 class="title" style="font-size: 50px; margin-bottom:10px;" id="res-title">صادووه!</h1>
+        <p style="font-size: 20px; opacity:0.8; margin-bottom:30px;" id="res-desc">الأغلبية جابوها صح.</p>
+
+        <div class="card-3d" id="res-card">
+          <div style="font-size:18px; opacity:0.8; font-weight:800;">نتيجة التصويت: الأكثر تصويتاً</div>
+          <div style="font-size:32px; font-weight:900; color:var(--accent); margin:10px 0;" id="res-most-voted">أحمد</div>
+          <div style="width:100%; height:2px; background:rgba(0,0,0,0.2); margin:20px 0;"></div>
+          <div style="font-size:18px; opacity:0.8; font-weight:800;">اللي كان برا السالفة:</div>
+          <div style="font-size:32px; font-weight:900; margin:10px 0;" id="res-impostors">أحمد</div>
+          <div style="width:100%; height:2px; background:rgba(0,0,0,0.2); margin:20px 0;"></div>
+          <div style="font-size:18px; opacity:0.8; font-weight:800;">السالفة الحقيقية كانت:</div>
+          <div style="font-size:36px; font-weight:900; margin-top:10px;" id="res-word">أسد</div>
+        </div>
+      </div>
+      <button class="btn-3d" style="margin-top:auto;" onclick="location.reload()">العب جيم ثاني 🔄</button>
+    </div>
+
+  </div>
+
+  <script>
+    function confirmExit() {
+      if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
+        window.location.href = '../index.html';
+      }
+    }
+    const CATEGORIES = {
+      animals: [{w:'أسد', h:'ملك الغابة'}, {w:'نمر', h:'مفترس مخطط'}, {w:'فيل', h:'ضخم بخرطوم'}, {w:'زرافة', h:'رقبتها طويلة'}, {w:'قرد', h:'يتسلق الأشجار'}, {w:'حصان', h:'للركوب والسباقات'}, {w:'قطة', h:'أليف منزلي'}, {w:'تمساح', h:'زاحف مائي'}, {w:'ثعبان', h:'زاحف سام'}, {w:'صقر', h:'طائر جارح'}, {w:'دولفين', h:'حيوان بحري ذكي'}, {w:'سمك القرش', h:'مفترس بحري'}, {w:'نعامة', h:'طائر كبير لا يطير'}, {w:'خروف', h:'نأخذ منه الصوف'}, {w:'غزال', h:'سريع وجميل'}, {w:'كنغر', h:'يقفز ويحمل صغاره بجراب'}, {w:'بطريق', h:'طائر يعيش بالجليد'}, {w:'نملة', h:'حشرة صغيرة مجتهدة'}, {w:'نحلة', h:'تصنع العسل'}, {w:'فهد', h:'أسرع حيوان بري'}],
+      food: [{w:'بيتزا', h:'إيطالية دائرية'}, {w:'شاورما', h:'سريعة ملفوفة'}, {w:'برجر', h:'ساندوتش باللحم/الدجاج'}, {w:'كبسة', h:'خليجية بالرز'}, {w:'سوشي', h:'آسيوية بحرية'}, {w:'باستا', h:'معكرونة إيطالية'}, {w:'فلافل', h:'مقلية من الحمص'}, {w:'مقلوبة', h:'عربية بالرز والخضار'}, {w:'كباب', h:'لحم مشوي'}, {w:'اندومي', h:'نودلز سريعة'}, {w:'بطاطس مقلية', h:'جانبية محبوبة'}, {w:'آيس كريم', h:'حلى بارد'}, {w:'ورق عنب', h:'محشي حامض'}, {w:'بانكيك', h:'فطور أمريكي'}, {w:'دونات', h:'حلى دائري مقلي'}, {w:'كشري', h:'مزيج مصري شعبي'}, {w:'عصيدة', h:'أكلة شعبية ثقيلة'}, {w:'شوكولاتة', h:'حلى يصنع من الكاكاو'}, {w:'سلطة', h:'مزيج خضار صحي'}, {w:'ستيك', h:'شريحة لحم مشوية'}],
+      places: [{w:'مستشفى', h:'للعلاج'}, {w:'مطار', h:'للسفر'}, {w:'محطة قطار', h:'للتنقل البري'}, {w:'مقهى', h:'لشرب القهوة'}, {w:'سينما', h:'لمشاهدة الأفلام'}, {w:'ملعب', h:'للرياضة'}, {w:'سوبر ماركت', h:'للتسوق'}, {w:'بنك', h:'للمال'}, {w:'مدرسة', h:'للتعليم'}, {w:'متحف', h:'للآثار'}, {w:'ملاهي', h:'للألعاب والترفيه'}, {w:'مسجد', h:'للصلاة'}, {w:'صيدلية', h:'لبيع الأدوية'}, {w:'مكتبة', h:'للقراءة والكتب'}, {w:'حديقة', h:'مكان أخضر مفتوح'}, {w:'فندق', h:'للسكن المؤقت'}, {w:'مطعم', h:'لتناول الطعام'}, {w:'محكمة', h:'للعدل والقضايا'}, {w:'نادي رياضي', h:'للتدريب والحديد'}, {w:'حلاق', h:'لقص الشعر'}],
+      jobs: [{w:'طبيب', h:'يعالج المرضى'}, {w:'مهندس', h:'يبني ويصمم'}, {w:'معلم', h:'يعلم الطلاب'}, {w:'شرطي', h:'يحفظ الأمن'}, {w:'طيار', h:'يقود طائرة'}, {w:'طباخ', h:'يعد الطعام'}, {w:'مبرمج', h:'يتعامل مع الأكواد'}, {w:'صحفي', h:'ينقل الأخبار'}, {w:'نجار', h:'يتعامل مع الخشب'}, {w:'محامي', h:'يترافع بالمحاكم'}, {w:'رجل إطفاء', h:'يخمد الحرائق'}, {w:'محاسب', h:'يتعامل مع الأرقام'}, {w:'ممثل', h:'يعمل بالتمثيل'}, {w:'مصور', h:'يلتقط الصور'}, {w:'سباك', h:'يصلح الأنابيب'}, {w:'كهربائي', h:'يصلح الأسلاك'}, {w:'رائد فضاء', h:'يسافر خارج الأرض'}, {w:'حلاق', h:'يقص الشعر'}, {w:'جندي', h:'يحمي الوطن'}, {w:'قاضي', h:'يحكم بين الناس'}],
+      tech: [{w:'جوال', h:'إلكتروني تحمله دائماً'}, {w:'لابتوب', h:'كمبيوتر متنقل'}, {w:'تلفزيون', h:'شاشة للمشاهدة'}, {w:'ساعة ذكية', h:'يلبس في المعصم'}, {w:'سماعات', h:'للاستماع للصوتيات'}, {w:'كاميرا', h:'للتصوير'}, {w:'بلايستيشن', h:'لألعاب الفيديو'}, {w:'راوتر', h:'يبث الإنترنت'}, {w:'طابعة', h:'يخرج الأوراق'}, {w:'ماوس', h:'ملحق للكمبيوتر'}, {w:'كيبورد', h:'للكتابة'}, {w:'آيباد', h:'لوحي من أبل'}, {w:'فلاش ميموري', h:'لحفظ ونقل الملفات'}, {w:'شاحن متنقل', h:'باور بانك'}, {w:'طائرة درون', h:'تطير وتصور'}, {w:'نظارة واقع افتراضي', h:'تلبس للـ VR'}, {w:'بروجكتر', h:'لعرض الصورة مكبرة'}, {w:'روبوت', h:'آلي مبرمج'}, {w:'ميكروفون', h:'لتسجيل الصوت'}, {w:'هارد ديسك', h:'وحدة تخزين رئيسية'}],
+      celebs: [{w:'كريستيانو', h:'لاعب برتغالي'}, {w:'ميسي', h:'لاعب أرجنتيني'}, {w:'إيلون ماسك', h:'مالك تويتر/X'}, {w:'ماجد المهندس', h:'فنان عراقي/سعودي'}, {w:'محمد عبده', h:'فنان العرب'}, {w:'جاكي شان', h:'ممثل أكشن آسيوي'}, {w:'مستر بيست', h:'يوتيوبر أجنبي'}, {w:'توم كروز', h:'ممثل أكشن أمريكي'}, {w:'عادل إمام', h:'ممثل كوميدي مصري'}, {w:'ياسر القحطاني', h:'لاعب سعودي معتزل'}, {w:'ستيف جوبز', h:'مؤسس أبل الراحل'}, {w:'محمد صلاح', h:'لاعب مصري'}, {w:'مارك زوكربيرغ', h:'مؤسس فيسبوك'}, {w:'شكيرا', h:'مغنية كولومبية'}, {w:'جوني ديب', h:'ممثل أمريكي شهير'}, {w:'عبدالحسين عبدالرضا', h:'ممثل كويتي راحل'}, {w:'بيل غيتس', h:'مؤسس مايكروسوفت'}, {w:'ويل سميث', h:'ممثل أمريكي أسمر'}, {w:'نانسي عجرم', h:'فنانة لبنانية'}, {w:'نيمار', h:'لاعب برازيلي'}],
+      hobbies: [{w:'كرة القدم', h:'رياضة بالقدم'}, {w:'الرسم', h:'بالألوان'}, {w:'السباحة', h:'رياضة مائية'}, {w:'القراءة', h:'تتعلق بالكتب'}, {w:'الطبخ', h:'إعداد طعام'}, {w:'التصوير', h:'التقاط لحظات'}, {w:'ألعاب الفيديو', h:'إلكترونية'}, {w:'ركوب الخيل', h:'فروسية'}, {w:'السفر', h:'تنقل بين الدول'}, {w:'الكتابة', h:'تأليف نصوص'}, {w:'الركض', h:'رياضة جري'}, {w:'تسلق الجبال', h:'مغامرة في المرتفعات'}, {w:'صيد السمك', h:'بالسنارة'}, {w:'الشطرنج', h:'لعبة ذكاء لوحية'}, {w:'الخياطة', h:'بالإبرة والخيط'}, {w:'العزف', h:'على آلة موسيقية'}, {w:'التخييم', h:'في البر أو الغابة'}, {w:'اليوغا', h:'تأمل واسترخاء'}, {w:'ركوب الدراجات', h:'بواسطة سيكل'}, {w:'جمع الطوابع', h:'هواية قديمة للمراسلات'}],
+      school: [{w:'رياضيات', h:'مادة أرقام'}, {w:'مقصف', h:'لشراء الأكل بالمدرسة'}, {w:'سبورة', h:'يكتب عليها المعلم'}, {w:'طابور الصباح', h:'تجمع قبل الحصص'}, {w:'اختبار', h:'تقييم للطلاب'}, {w:'فسحة', h:'راحة بين الحصص'}, {w:'مدير', h:'المسؤول عن المدرسة'}, {w:'حقيبة دراسية', h:'يحملها الطالب'}, {w:'قلم رصاص', h:'للكتابة يمسح'}, {w:'واجب منزلي', h:'مهمة تحل بالبيت'}, {w:'مساحة', h:'لمحو الكتابة'}, {w:'براية', h:'لشحذ القلم'}, {w:'مسطرة', h:'للتسطير والقياس'}, {w:'دفتر', h:'يحتوي على أوراق مسطرة'}, {w:'علوم', h:'مادة تدرس الطبيعة'}, {w:'تاريخ', h:'مادة تدرس الماضي'}, {w:'جغرافيا', h:'مادة تدرس التضاريس'}, {w:'شهادة', h:'ورقة النتيجة النهائية'}, {w:'مريول', h:'لباس مدرسي للبنات'}, {w:'حافلة مدرسية', h:'لونها أصفر غالباً'}],
+      nature: [{w:'بحر', h:'ماء مالح'}, {w:'جبل', h:'تضاريس مرتفعة'}, {w:'صحراء', h:'منطقة رملية حارة'}, {w:'غابة', h:'مساحة مليئة بالأشجار'}, {w:'نهر', h:'ماء عذب'}, {w:'شلال', h:'ماء يسقط من ارتفاع'}, {w:'قمر', h:'يضيء بالليل'}, {w:'شمس', h:'نجم يمدنا بالحرارة'}, {w:'غيوم', h:'في السماء'}, {w:'ثلج', h:'يتساقط بالشتاء'}, {w:'بركان', h:'يقذف حمم'}, {w:'زلزال', h:'هزة أرضية'}, {w:'كهف', h:'فجوة في الجبل'}, {w:'جزيرة', h:'يابسة يحيط بها الماء'}, {w:'نجوم', h:'نقاط مضيئة ليلاً'}, {w:'مطر', h:'ماء يسقط من السماء'}, {w:'رياح', h:'هواء متحرك'}, {w:'قوس قزح', h:'ألوان تظهر بعد المطر'}, {w:'بحيرة', h:'مياه راكدة محاطة بيابسة'}, {w:'واحة', h:'مكان أخضر وسط الصحراء'}],
+      brands: [{w:'أبل', h:'شعارها تفاحة'}, {w:'سامسونج', h:'كورية شهيرة'}, {w:'ماكدونالدز', h:'شعارها حرف M'}, {w:'نايكي', h:'رياضية شهيرة'}, {w:'مرسيدس', h:'سيارات ألمانية'}, {w:'تويوتا', h:'سيارات يابانية'}, {w:'ستاربكس', h:'مقهى عالمي'}, {w:'جوجل', h:'محرك بحث'}, {w:'بيبسي', h:'مشروب غازي'}, {w:'زارا', h:'ماركة ملابس'}, {w:'كوكاكولا', h:'مشروب غازي أحمر'}, {w:'أديداس', h:'شعارها 3 خطوط'}, {w:'سوني', h:'تصنع البلايستيشن'}, {w:'بي إم دبليو', h:'سيارات ألمانية شعارها دائري'}, {w:'برجر كنج', h:'منافس ماكدونالدز'}, {w:'كنتاكي', h:'دجاج مقلي وشعارها رجل عجوز'}, {w:'أمازون', h:'متجر إلكتروني عملاق'}, {w:'نتفليكس', h:'للمسلسلات والأفلام'}, {w:'ديزني', h:'عالم الكرتون'}, {w:'رولكس', h:'ساعات فخمة'}],
+      jordan: [{w:'المنسف', h:'أكلة أردنية شهيرة'}, {w:'البتراء', h:'مدينة أثرية وردية'}, {w:'البحر الميت', h:'أخفض بقعة على الأرض'}, {w:'جرش', h:'مدينة أثرية رومانية'}, {w:'وادي رم', h:'صحراء سياحية خلابة'}, {w:'العقبة', h:'مدينة ساحلية أردنية'}, {w:'مدرج روماني', h:'معلم أثري في عمان'}, {w:'الكنافة', h:'حلوى شهيرة'}, {w:'الجميد', h:'من مكونات المنسف'}, {w:'الدبكة', h:'رقصة شعبية'}, {w:'المقلوبة', h:'أكلة تنقلب بالصينية'}, {w:'عمان', h:'عاصمة الأردن'}, {w:'إربد', h:'عروس الشمال'}, {w:'السوسنة السوداء', h:'زهرة الأردن الوطنية'}, {w:'قلعة عجلون', h:'قلعة تاريخية مرتفعة'}, {w:'حمامات ماعين', h:'مياه معدنية حارة'}, {w:'الزرقاء', h:'مدينة صناعية أردنية'}, {w:'جامعة اليرموك', h:'جامعة حكومية شهيرة'}, {w:'جبل القلعة', h:'موقع أثري وسط عمان'}, {w:'سدر المنسف', h:'يقدم فيه الطعام للضيوف'}],
+      arab: [{w:'الأهرامات', h:'معلم أثري في مصر'}, {w:'برج خليفة', h:'أطول برج في الإمارات'}, {w:'الكعبة', h:'مقدسة في السعودية'}, {w:'الكشري', h:'أكلة شعبية مصرية'}, {w:'الكسكسي', h:'أكلة مغاربية شهيرة'}, {w:'البحرين', h:'دولة عربية جزرية'}, {w:'المسجد الأقصى', h:'مقدس في فلسطين'}, {w:'شاورما', h:'أكلة شامية شهيرة'}, {w:'دبي', h:'مدينة إماراتية سياحية'}, {w:'القهوة العربية', h:'مشروب ضيافة أصيل'}, {w:'مسجد الشيخ زايد', h:'معلم إسلامي في أبوظبي'}, {w:'مدينة البتراء', h:'في الأردن'}, {w:'صخرة الروشة', h:'معلم بحري في لبنان'}, {w:'جامع الزيتونة', h:'في تونس'}, {w:'مكة المكرمة', h:'قبلة المسلمين'}, {w:'الرياض', h:'عاصمة السعودية'}, {w:'نهر النيل', h:'أطول نهر بالعالم يمر بمصر'}, {w:'الفلافل', h:'أكلة شعبية شامية ومصرية'}, {w:'سوق واقف', h:'سوق تراثي بقطر'}, {w:'الكندورة/الثوب', h:'لباس عربي تقليدي'}]
+    };
+
+    let state = { 
+      players: 5, impostors: 1, category: 'animals', useTimer: true, useHint: true, 
+      playerNames: [], impostorIndices: [], secretItem: null, 
+      currentPlayerIndex: 0, timer: null, timeLeft: 180,
+      votes: [], currentVoter: 0
+    };
+
+    function adjPlayers(d) { state.players = Math.max(3, Math.min(20, state.players + d)); document.getElementById('val-players').textContent = state.players; const m = state.players; if(state.impostors > m) { state.impostors = m; document.getElementById('val-impostors').textContent = state.impostors; } }
+    function adjImpostors(d) { const m = state.players; state.impostors = Math.max(1, Math.min(m, state.impostors + d)); document.getElementById('val-impostors').textContent = state.impostors; }
+    function selectCat(c, el) { state.category = c; document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
+    function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
+
+    function goToNames() {
+      state.useTimer = document.getElementById('timer-toggle').classList.contains('on');
+      state.useHint = document.getElementById('hint-toggle').classList.contains('on');
+      const list = document.getElementById('names-list'); list.innerHTML = '';
+      for(let i=0; i<state.players; i++) list.innerHTML += `<input type="text" class="name-input" id="name-${i}" placeholder="اللاعب رقم ${i+1}" value="${state.playerNames[i]||''}" />`;
+      showScreen('names');
+    }
+
+    function startGame() {
+      state.playerNames = []; for(let i=0; i<state.players; i++) { state.playerNames.push(document.getElementById(`name-${i}`).value.trim() || `اللاعب ${i+1}`); }
+      let list = CATEGORIES[state.category];
+      if (state.category === 'random') { const keys = Object.keys(CATEGORIES); list = CATEGORIES[keys[Math.floor(Math.random()*keys.length)]]; }
+      state.secretItem = list[Math.floor(Math.random()*list.length)];
+      state.impostorIndices = [];
+      while(state.impostorIndices.length < state.impostors) { const r = Math.floor(Math.random()*state.players); if(!state.impostorIndices.includes(r)) state.impostorIndices.push(r); }
+      state.currentPlayerIndex = 0; prepareReveal(); showScreen('reveal');
+    }
+
+    function prepareReveal() {
+      document.getElementById('rev-player-name').textContent = state.playerNames[state.currentPlayerIndex];
+      const card = document.getElementById('reveal-card'); const content = document.getElementById('card-content');
+      card.className = 'reveal-card'; content.style.opacity = '1';
+      content.innerHTML = `<div class="tap-icon">👆</div><div style="font-size:36px; font-weight:900;">المس لمعرفة دورك</div><div style="font-size:18px; opacity:0.7; margin-top:16px;">لا تخلي أحد يشوف شاشتك!</div>`;
+    }
+
+    function revealRole() {
+      const card = document.getElementById('reveal-card'); if (card.classList.contains('is-revealed')) return;
+      const content = document.getElementById('card-content'); content.style.opacity = '0';
+      
+      setTimeout(() => {
+        card.classList.add('is-revealed');
+        if (state.impostorIndices.includes(state.currentPlayerIndex)) {
+          card.classList.add('theme-danger');
+          let hintHTML = state.useHint ? `<div style="background:rgba(0,0,0,0.3); padding:16px; border-radius:16px; margin-top:16px; width:100%;">💡 <strong>تلميح:</strong><br/> السالفة عبارة عن (${state.secretItem.h})</div>` : '';
+          content.innerHTML = `<div style="font-size:100px; line-height:1;">🤫</div><div style="font-size:42px; font-weight:900; line-height:1.2; text-shadow:0 4px 0 rgba(0,0,0,0.3); margin:10px 0;">أنت برا السالفة!</div>${hintHTML}<button class="btn-3d" style="background:white; color:#b91c1c; margin-top:30px; width:100%; box-shadow:0 6px 0 #fca5a5;" onclick="nextPlayer(event)">إخفاء وتمرير ➡</button>`;
+        } else {
+          card.classList.add('theme-success');
+          content.innerHTML = `<div style="font-size:24px; opacity:0.8; margin-bottom:16px; font-weight:800;">السالفة هي:</div><div style="font-size:60px; font-weight:900; text-shadow:0 6px 0 rgba(0,0,0,0.3); margin-bottom:30px;">${state.secretItem.w}</div><div style="font-size:18px; opacity:0.8; font-weight:800; margin-bottom:20px;">اكتشف من اللي برا السالفة!</div><button class="btn-3d" style="background:white; color:#047857; margin-top:auto; width:100%; box-shadow:0 6px 0 #6ee7b7;" onclick="nextPlayer(event)">إخفاء وتمرير ➡</button>`;
+        }
+        content.style.opacity = '1';
+      }, 150);
+    }
+
+    function nextPlayer(e) {
+      e.stopPropagation(); state.currentPlayerIndex++;
+      if (state.currentPlayerIndex < state.players) prepareReveal();
+      else { if(state.useTimer) startTimer(); else startVotingPhase(); }
+    }
+
+    function startTimer() {
+      showScreen('timer'); state.timeLeft = 180; updateTimerDisplay(); document.getElementById('timer-circle').classList.add('active');
+      document.getElementById('random-ask-text').textContent = 'مين يسأل مين؟';
+      if(state.timer) clearInterval(state.timer);
+      state.timer = setInterval(() => { state.timeLeft--; updateTimerDisplay(); if (state.timeLeft <= 0) { clearInterval(state.timer); startVotingPhase(); } }, 1000);
+    }
+    function updateTimerDisplay() { const m = Math.floor(state.timeLeft/60); const s = state.timeLeft%60; document.getElementById('timer-display').textContent = `${m}:${s.toString().padStart(2, '0')}`; }
+
+    function generateQuestioner() {
+      if(state.players < 2) return;
+      let p1 = Math.floor(Math.random() * state.players);
+      let p2 = Math.floor(Math.random() * state.players);
+      while(p1 === p2) { p2 = Math.floor(Math.random() * state.players); }
+      document.getElementById('random-ask-text').innerHTML = `اللاعب <span style="color:white; font-size:28px;">${state.playerNames[p1]}</span> يسأل <span style="color:white; font-size:28px;">${state.playerNames[p2]}</span>`;
+    }
+
+    // VOTING LOGIC
+    function startVotingPhase() {
+      if(state.timer) clearInterval(state.timer);
+      state.votes = new Array(state.players).fill(0);
+      state.currentVoter = 0;
+      renderVotingScreen();
+      showScreen('vote');
+    }
+
+    function renderVotingScreen() {
+      document.getElementById('vote-voter-name').textContent = state.playerNames[state.currentVoter];
+      const grid = document.getElementById('voting-grid'); grid.innerHTML = '';
+      for (let i = 0; i < state.players; i++) {
+        if (i === state.currentVoter) continue; // Cannot vote for self
+        const btn = document.createElement('button'); btn.className = 'btn-3d'; btn.textContent = state.playerNames[i];
+        btn.onclick = () => recordVote(i); grid.appendChild(btn);
+      }
+    }
+
+    function recordVote(votedForIdx) {
+      state.votes[votedForIdx]++;
+      state.currentVoter++;
+      if (state.currentVoter < state.players) {
+        renderVotingScreen();
+      } else {
+        processResults();
+      }
+    }
+
+    function processResults() {
+      let maxVotes = 0;
+      let mostVotedIndices = [];
+      for(let i=0; i<state.players; i++) {
+        if (state.votes[i] > maxVotes) { maxVotes = state.votes[i]; mostVotedIndices = [i]; }
+        else if (state.votes[i] === maxVotes) { mostVotedIndices.push(i); }
+      }
+
+      // Check if any of the most voted is an impostor
+      const caughtImpostors = mostVotedIndices.filter(idx => state.impostorIndices.includes(idx));
+      
+      const mostVotedNames = mostVotedIndices.map(i => state.playerNames[i]).join(' و ');
+      const impNames = state.impostorIndices.map(i => state.playerNames[i]).join(' و ');
+      
+      document.getElementById('res-most-voted').textContent = mostVotedNames;
+      document.getElementById('res-impostors').textContent = impNames;
+      document.getElementById('res-word').textContent = state.secretItem.w;
+      
+      const title = document.getElementById('res-title'); const desc = document.getElementById('res-desc'); const icon = document.getElementById('res-icon');
+      const card = document.getElementById('res-card');
+
+      if (caughtImpostors.length > 0) { 
+        icon.textContent = '🎉'; title.textContent = 'صادووه!'; title.style.color = 'var(--success)'; 
+        desc.textContent = `الأغلبية اتفقت وصادوا الإمبوستر. الأبرياء فازوا!`; 
+        card.style.background = '#064e3b'; card.style.boxShadow = '0 8px 0 #022c22';
+      } else { 
+        icon.textContent = '🤦‍♂️'; title.textContent = 'فلتوا منها!'; title.style.color = 'var(--danger)'; 
+        desc.textContent = `التصويت راح لشخص بريء. الإمبوستر فاز!`; 
+        card.style.background = '#b91c1c'; card.style.boxShadow = '0 8px 0 #7f1d1d';
+      }
+      
+      showScreen('result');
+    }
+  </script>
+</body>
+</html>

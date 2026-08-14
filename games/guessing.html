@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>لعبة التخمين</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a1a;
+      --primary: #6366f1;
+      --primary-dark: #4338ca;
+      --secondary: #ec4899;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --card-bg: rgba(20, 20, 40, 0.9);
+      --text: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* Top Nav */
+    .top-nav {
+      position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between;
+      align-items: center; padding: 12px 20px; z-index: 200;
+      background: rgba(10,10,26,0.8); backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    /* Image Modal */
+    .image-modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center;
+      flex-direction: column; opacity: 0; transition: opacity 0.3s;
+    }
+    .image-modal.show { opacity: 1; }
+    .image-modal img { max-width: 95%; max-height: 85%; border-radius: 12px; object-fit: contain; }
+    .image-modal-close { margin-top: 20px; color: white; font-size: 18px; font-weight: bold; background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 20px; }
+    .top-btn {
+      background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px;
+      text-decoration: none; color: white; font-weight: bold; font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .support-btn { background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.5); }
+
+    /* Screens */
+    .screen { display: none; flex-direction: column; min-height: 100vh; padding: 80px 20px 30px; }
+    .screen.active { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Title */
+    .title { font-size: 32px; font-weight: 900; color: var(--primary); text-align: center; margin-bottom: 20px; }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg); border-radius: 20px; padding: 24px; margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%; padding: 16px; border-radius: 14px; background: var(--primary);
+      color: white; border: none; font-family: 'Tajawal',sans-serif; font-size: 20px;
+      font-weight: 900; box-shadow: 0 5px 0 var(--primary-dark); cursor: pointer;
+      transition: all 0.1s; margin-bottom: 12px;
+    }
+    .btn:active { transform: translateY(5px); box-shadow: 0 0 0 var(--primary-dark); }
+    .btn.success { background: var(--success); box-shadow: 0 5px 0 #047857; }
+    .btn.success:active { box-shadow: 0 0 0 #047857; }
+    .btn.danger { background: var(--danger); box-shadow: 0 5px 0 #b91c1c; }
+    .btn.danger:active { box-shadow: 0 0 0 #b91c1c; }
+    .btn.ghost { background: transparent; border: 2px solid var(--primary); box-shadow: none; color: var(--primary); }
+    .btn.ghost:active { box-shadow: none; background: rgba(99,102,241,0.1); }
+
+    /* Input */
+    .input-field {
+      width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.4);
+      border: 2px solid rgba(255,255,255,0.1); color: white; font-family: 'Tajawal',sans-serif;
+      font-size: 16px; margin-bottom: 12px;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); }
+    .input-label { color: #94a3b8; font-size: 14px; margin-bottom: 6px; display: block; }
+
+    /* Question Image */
+    .question-img {
+      width: 100%; height: 240px; object-fit: cover; border-radius: 16px; margin-bottom: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    .question-text {
+      font-size: 22px; font-weight: 900; color: white; text-align: center;
+      background: rgba(0,0,0,0.5); padding: 12px 16px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px;
+    }
+    .question-unit {
+      font-size: 15px; color: var(--accent); text-align: center; font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    /* Hearts */
+    .hearts-display { font-size: 28px; letter-spacing: 4px; text-align: center; margin: 10px 0; }
+
+    /* Players Setup */
+    .player-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .player-row .input-field { margin: 0; flex: 1; }
+
+    /* Numpad */
+    .numpad-display {
+      background: rgba(0,0,0,0.5); padding: 16px; border-radius: 12px; font-size: 36px;
+      font-weight: 900; text-align: center; margin-bottom: 12px; min-height: 60px;
+      border: 2px solid rgba(255,255,255,0.1); letter-spacing: 4px;
+      color: var(--accent);
+    }
+    .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .numpad-btn {
+      padding: 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; color: white; font-size: 24px; font-weight: 900; cursor: pointer;
+      transition: all 0.1s; font-family: 'Tajawal', sans-serif;
+    }
+    .numpad-btn:active { background: rgba(99,102,241,0.3); transform: scale(0.93); }
+    .numpad-btn.del { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+    /* Results board */
+    .guess-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.05); padding: 14px 18px; border-radius: 12px;
+      margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.4s;
+    }
+    .guess-item.eliminated { opacity: 0.35; text-decoration: line-through; background: rgba(239,68,68,0.05); border-color: rgba(239,68,68,0.2); }
+    .guess-item.winner { background: rgba(16,185,129,0.15); border-color: var(--success); animation: winPulse 0.5s; }
+    .guess-item.loser-heart { background: rgba(239,68,68,0.15); border-color: var(--danger); }
+    @keyframes winPulse { 0%{transform:scale(1)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
+
+    .guess-name { font-weight: bold; font-size: 18px; }
+    .guess-val { font-size: 22px; font-weight: 900; color: var(--accent); }
+    .guess-hearts { font-size: 18px; }
+
+    /* Answer reveal box */
+    .answer-box {
+      background: rgba(99,102,241,0.15); border: 2px solid var(--primary); border-radius: 16px;
+      padding: 20px; text-align: center; margin-bottom: 16px;
+    }
+    .answer-label { font-size: 14px; color: #94a3b8; }
+    .answer-val { font-size: 52px; font-weight: 900; color: var(--primary); }
+
+    /* Winner Screen */
+    .winner-crown { font-size: 80px; text-align: center; }
+    .winner-name-display { font-size: 40px; font-weight: 900; color: var(--success); text-align: center; margin: 10px 0; }
+
+    /* Leaderboard */
+    .lb-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.3); }
+    .lb-row.top { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); }
+    .lb-rank { font-size: 20px; font-weight: 900; color: var(--accent); width: 30px; }
+
+    /* Pass screen */
+    .pass-name { font-size: 44px; font-weight: 900; color: var(--primary); text-align: center; margin: 20px 0; }
+    .pass-icon { font-size: 80px; text-align: center; }
+
+    /* Eliminated overlay */
+    .out-badge { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid rgba(239,68,68,0.4); padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+
+    .mt-auto { margin-top: auto; }
+    .small-tip { font-size: 14px; color: #64748b; text-align: center; margin-top: 8px; }
+    hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+    <a href="https://discord.gg/REST1" target="_blank" class="top-btn support-btn">الدعم الفني 🛠️</a>
+  </div>
+
+  <!-- SCREEN: TUTORIAL -->
+  <div id="screen-tutorial" class="screen active">
+    <h1 class="title">لعبة التخمين 🧠</h1>
+    <div class="card">
+      <h3 style="color:var(--primary); margin-bottom:12px; font-size:22px;">كيف نلعب؟</h3>
+      <p style="font-size:16px; line-height:1.7; text-align:right;">
+        1️⃣ <strong>الصورة والسؤال:</strong> تظهر صورة مع سؤال رقمي للجميع (مثال: "كم متراً ارتفاع برج خليفة؟").<br>
+        2️⃣ <strong>التخمين السري:</strong> يمرر الجهاز لكل لاعب سراً، كل واحد يكتب تخمينه برقم ثم يخفيه.<br>
+        3️⃣ <strong>الكشف:</strong> تُعرض كل الأرقام، ثم يُكشف الرقم الصحيح. <strong>أبعد تخمين</strong> يخسر ❤️ قلباً!<br>
+        💀 من يخسر <strong>3 قلوب</strong> يُحذف من اللعبة.<br>
+        🏆 آخر لاعب يبقى هو الفائز!
+      </p>
+    </div>
+    <button class="btn mt-auto" onclick="showScreen('setup')">فهمت، ابدأ اللعب 🚀</button>
+  </div>
+
+  <!-- SCREEN: SETUP -->
+  <div id="screen-setup" class="screen">
+    <h1 class="title">إعداد اللاعبين ⚙️</h1>
+    <div class="card">
+      <label class="input-label">عدد اللاعبين (2 - 8)</label>
+      <input type="number" id="players-count" class="input-field" value="3" min="2" max="8" onchange="renderPlayerSetup()">
+      <div id="players-setup-container"></div>
+    </div>
+    <button class="btn" onclick="startGame()">ابدأ اللعب 🎮</button>
+  </div>
+
+  <!-- SCREEN: QUESTION (Public) -->
+  <div id="screen-question" class="screen">
+    <h1 class="title">السؤال 🎯</h1>
+    <div class="card" style="padding:16px;">
+      <img id="q-image" class="question-img" src="" alt="question" onclick="openImageModal(this.src)" style="cursor:zoom-in;">
+      <p class="question-text" id="q-text">--</p>
+      <p class="question-unit" id="q-unit">الوحدة: --</p>
+    </div>
+    <p class="small-tip">تأملوا الصورة جيداً قبل التخمين! (اضغط على الصورة لتكبيرها)</p>
+    <button class="btn mt-auto" onclick="startGuessing()">بدء التخمين السري 🔒</button>
+  </div>
+
+  <!-- SCREEN: PASS PHONE -->
+  <div id="screen-pass" class="screen" style="justify-content:center; text-align:center;">
+    <div class="pass-icon">📱</div>
+    <p style="font-size:18px; opacity:0.7;">أعطِ الجوال إلى:</p>
+    <div class="pass-name" id="pass-player-name">--</div>
+    <p style="opacity:0.7;">ولا تخلي أحد يشوف تخمينك!</p>
+    <button class="btn" style="margin-top:auto;" onclick="showGuessScreen()">أنا جاهز 👍</button>
+  </div>
+
+  <!-- SCREEN: GUESS INPUT -->
+  <div id="screen-guess" class="screen">
+    <h1 class="title">تخمينك 🤔</h1>
+    <div class="card" style="padding:16px; margin-bottom: 10px;">
+      <img id="g-image" class="question-img" src="" alt="question" onclick="openImageModal(this.src)" style="height:120px; cursor:zoom-in; margin-bottom: 10px;">
+      <p class="question-text" id="g-text" style="font-size:16px; margin-bottom: 5px;">--</p>
+      <p class="question-unit" id="g-unit" style="margin-bottom:0px; font-size: 13px;">الوحدة: --</p>
+    </div>
+    <div class="card" style="margin-bottom: 10px; padding: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><p style="color:#94a3b8; margin:0;">اكتب تخمينك:</p><div id="guess-timer" style="color:var(--danger); font-weight:bold; font-size:18px; display:flex; align-items:center; gap:5px;">⏱️ <span id="timer-val">10</span></div></div>
+      <div class="numpad-display" id="numpad-display" style="min-height: 50px; font-size: 28px; padding: 10px;">_</div>
+      <div class="numpad-grid" id="numpad-grid">
+        <button class="numpad-btn" onclick="numInput('7')">7</button>
+        <button class="numpad-btn" onclick="numInput('8')">8</button>
+        <button class="numpad-btn" onclick="numInput('9')">9</button>
+        <button class="numpad-btn" onclick="numInput('4')">4</button>
+        <button class="numpad-btn" onclick="numInput('5')">5</button>
+        <button class="numpad-btn" onclick="numInput('6')">6</button>
+        <button class="numpad-btn" onclick="numInput('1')">1</button>
+        <button class="numpad-btn" onclick="numInput('2')">2</button>
+        <button class="numpad-btn" onclick="numInput('3')">3</button>
+        <button class="numpad-btn del" onclick="numInput('del')">⌫</button>
+        <button class="numpad-btn" onclick="numInput('0')">0</button>
+        <button class="numpad-btn success" style="background: var(--success); color: white;" onclick="confirmGuess()">تم ✅</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: RESULTS (reveal + eliminate) -->
+  <div id="screen-results" class="screen">
+    <h1 class="title">النتائج 🎯</h1>
+    <div class="answer-box">
+      <p class="answer-label">الإجابة الصحيحة</p>
+      <p class="answer-val" id="result-answer">--</p>
+      <p style="color:#94a3b8; font-size:14px;" id="result-unit">--</p>
+    </div>
+    <div id="guesses-list" style="margin-bottom:16px;"></div>
+    <div id="eliminated-list" style="margin-bottom: 16px; font-size: 14px; opacity: 0.8;"></div>
+    <div id="result-msg" class="card" style="text-align:center; display:none;">
+      <p id="result-msg-text" style="font-size:18px; font-weight:bold;"></p>
+    </div>
+    <button class="btn mt-auto" id="btn-next-round" onclick="nextRound()">الجولة التالية ➡</button>
+  </div>
+
+  <!-- SCREEN: WINNER -->
+  <div id="screen-winner" class="screen" style="justify-content:center; text-align:center;">
+    <div class="winner-crown">🏆</div>
+    <h1 class="title" style="font-size:42px;">الفائز!</h1>
+    <div class="winner-name-display" id="winner-name">--</div>
+    <p style="font-size:20px; opacity:0.8; margin-bottom:30px;">هو آخر من صمد في لعبة التخمين!</p>
+    <div class="card" id="final-lb"></div>
+    <button class="btn mt-auto" onclick="location.reload()">العب من جديد 🔄</button>
+  </div>
+
+  <div id="image-modal" class="image-modal" onclick="closeImageModal()">
+    <img id="modal-img" src="" alt="zoomed">
+    <div class="image-modal-close">إغلاق ❌</div>
+  </div>
+
+  <script>
+    function confirmExit() {
+      if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
+        window.location.href = '../index.html';
+      }
+    }
+    // ============================
+    // IMAGE MODAL
+    // ============================
+    function openImageModal(src) {
+      const modal = document.getElementById('image-modal');
+      document.getElementById('modal-img').src = src;
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('show'), 10);
+    }
+    function closeImageModal() {
+      const modal = document.getElementById('image-modal');
+      modal.classList.remove('show');
+      setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    // ============================
+    // QUESTIONS DATABASE (100+)
+    // ============================
+    const QUESTIONS = [
+      { q: "كم طول برج إيفل بالمتر؟", answer: 330, unit: "الرقم", img: "https://loremflickr.com/500/350/eiffel-tower" },
+      { q: "كم وزن قلب الحوت الأزرق بالكيلوجرام؟", answer: 180, unit: "الرقم", img: "https://loremflickr.com/500/350/blue-whale-heart" },
+      { q: "كم عدد كواكب المجموعة الشمسية؟", answer: 8, unit: "الرقم", img: "https://loremflickr.com/500/350/solar-system" },
+      { q: "كم طول الزرافة بالمتر؟", answer: 5, unit: "الرقم", img: "https://loremflickr.com/500/350/giraffe" },
+      { q: "كم طول سور الصين العظيم بالكيلومتر؟", answer: 21196, unit: "الرقم", img: "https://loremflickr.com/500/350/great-wall-of-china" },
+      { q: "كم وزن الفيل الأفريقي بالكيلوجرام؟", answer: 6000, unit: "الرقم", img: "https://loremflickr.com/500/350/african-elephant" },
+      { q: "كم عدد عظام جسم الإنسان البالغ؟", answer: 206, unit: "الرقم", img: "https://loremflickr.com/500/350/human-skeleton" },
+      { q: "كم ارتفاع جبل إفرست بالمتر؟", answer: 8849, unit: "الرقم", img: "https://loremflickr.com/500/350/mount-everest" },
+      { q: "كم وزن الحوت الأزرق بالطن؟", answer: 150, unit: "الرقم", img: "https://loremflickr.com/500/350/blue-whale" },
+      { q: "كم عدد قارات العالم؟", answer: 7, unit: "الرقم", img: "https://loremflickr.com/500/350/world-map" },
+      { q: "كم ارتفاع تمثال الحرية بالمتر؟", answer: 93, unit: "الرقم", img: "https://loremflickr.com/500/350/statue-of-liberty" },
+      { q: "كم عدد أسنان الإنسان البالغ؟", answer: 32, unit: "الرقم", img: "https://loremflickr.com/500/350/human-teeth" },
+      { q: "كم طول سفينة تايتانيك بالمتر؟", answer: 269, unit: "الرقم", img: "https://loremflickr.com/500/350/titanic-ship" },
+      { q: "كم عدد أرجل العنكبوت؟", answer: 8, unit: "الرقم", img: "https://loremflickr.com/500/350/spider" },
+      { q: "كم وزن بيضة النعامة بالجرام؟", answer: 1400, unit: "الرقم", img: "https://loremflickr.com/500/350/ostrich-egg" },
+      { q: "كم ارتفاع برج خليفة بالمتر؟", answer: 828, unit: "الرقم", img: "https://loremflickr.com/500/350/burj-khalifa" },
+      { q: "كم عدد قلوب الأخطبوط؟", answer: 3, unit: "الرقم", img: "https://loremflickr.com/500/350/octopus" },
+      { q: "كم وزن الأسد الذكر بالكيلوجرام؟", answer: 190, unit: "الرقم", img: "https://loremflickr.com/500/350/lion" },
+      { q: "كم طول نهر الأمازون بالكيلومتر؟", answer: 6400, unit: "الرقم", img: "https://loremflickr.com/500/350/amazon-river" },
+      { q: "كم عدد حجرات القلب البشري؟", answer: 4, unit: "الرقم", img: "https://loremflickr.com/500/350/human-heart" },
+      { q: "كم طول نهر النيل بالكيلومتر؟", answer: 6650, unit: "الرقم", img: "https://loremflickr.com/500/350/nile-river" },
+      { q: "كم وزن الدب القطبي بالكيلوجرام؟", answer: 450, unit: "الرقم", img: "https://loremflickr.com/500/350/polar-bear" },
+      { q: "كم عدد عيون العنكبوت؟", answer: 8, unit: "الرقم", img: "https://loremflickr.com/500/350/spider-eyes" },
+      { q: "كم ارتفاع برج طوكيو بالمتر؟", answer: 333, unit: "الرقم", img: "https://loremflickr.com/500/350/tokyo-tower" },
+      { q: "كم وزن قرش الحوت بالكيلوجرام؟", answer: 20000, unit: "الرقم", img: "https://loremflickr.com/500/350/whale-shark" },
+      { q: "كم عدد أرجل النملة؟", answer: 6, unit: "الرقم", img: "https://loremflickr.com/500/350/ant" },
+      { q: "كم طول جسر البوابة الذهبية بالمتر؟", answer: 2737, unit: "الرقم", img: "https://loremflickr.com/500/350/golden-gate-bridge" },
+      { q: "كم وزن الزرافة بالكيلوجرام؟", answer: 800, unit: "الرقم", img: "https://loremflickr.com/500/350/giraffe-standing" },
+      { q: "كم عدد أسنان سمك القرش تقريبًا؟", answer: 300, unit: "الرقم", img: "https://loremflickr.com/500/350/shark-teeth" },
+      { q: "كم ارتفاع برج بيزا المائل بالمتر؟", answer: 56, unit: "الرقم", img: "https://loremflickr.com/500/350/leaning-tower-of-pisa" },
+      { q: "كم وزن النمر البنغالي بالكيلوجرام؟", answer: 220, unit: "الرقم", img: "https://loremflickr.com/500/350/bengal-tiger" },
+      { q: "كم عدد أضلاع جسم الإنسان؟", answer: 24, unit: "الرقم", img: "https://loremflickr.com/500/350/human-ribs" },
+      { q: "كم طول ثعبان الأناكوندا بالمتر؟", answer: 6, unit: "الرقم", img: "https://loremflickr.com/500/350/anaconda-snake" },
+      { q: "كم ارتفاع جبل كليمنجارو بالمتر؟", answer: 5895, unit: "الرقم", img: "https://loremflickr.com/500/350/mount-kilimanjaro" },
+      { q: "كم وزن وحيد القرن الأبيض بالكيلوجرام؟", answer: 2300, unit: "الرقم", img: "https://loremflickr.com/500/350/white-rhino" },
+      { q: "كم عدد كواكب المجموعة الشمسية التي تمتلك حلقات؟", answer: 4, unit: "الرقم", img: "https://loremflickr.com/500/350/saturn-rings" },
+      { q: "كم طول الحوت الأزرق بالمتر؟", answer: 30, unit: "الرقم", img: "https://loremflickr.com/500/350/blue-whale-length" },
+      { q: "كم عدد أرجل الحصان؟", answer: 4, unit: "الرقم", img: "https://loremflickr.com/500/350/horse" },
+      { q: "كم وزن الباندا العملاقة بالكيلوجرام؟", answer: 100, unit: "الرقم", img: "https://loremflickr.com/500/350/giant-panda" },
+      { q: "كم ارتفاع تمثال المسيح الفادي بالمتر؟", answer: 38, unit: "الرقم", img: "https://loremflickr.com/500/350/christ-the-redeemer" },
+      { q: "كم طول رقبة الزرافة عند الولادة بالمتر؟", answer: 2, unit: "الرقم", img: "https://loremflickr.com/500/350/baby-giraffe" },
+      { q: "كم عدد أسنان الحصان؟", answer: 40, unit: "الرقم", img: "https://loremflickr.com/500/350/horse-teeth" },
+      { q: "كم وزن الجمل العربي بالكيلوجرام؟", answer: 600, unit: "الرقم", img: "https://loremflickr.com/500/350/camel" },
+      { q: "كم ارتفاع برج ويليس (سيرز سابقًا) بالمتر؟", answer: 442, unit: "الرقم", img: "https://loremflickr.com/500/350/willis-tower" },
+      { q: "كم عدد أرجل النحلة؟", answer: 6, unit: "الرقم", img: "https://loremflickr.com/500/350/bee" },
+      { q: "كم طول جسر بروكلين بالمتر؟", answer: 1825, unit: "الرقم", img: "https://loremflickr.com/500/350/brooklyn-bridge" },
+      { q: "كم وزن غوريلا الجبل الذكر بالكيلوجرام؟", answer: 200, unit: "الرقم", img: "https://loremflickr.com/500/350/mountain-gorilla" },
+      { q: "كم عدد فقرات رقبة الزرافة؟", answer: 7, unit: "الرقم", img: "https://loremflickr.com/500/350/giraffe-neck" },
+      { q: "كم ارتفاع قلعة نويشفانشتاين بالمتر؟", answer: 65, unit: "الرقم", img: "https://loremflickr.com/500/350/neuschwanstein-castle" },
+      { q: "كم وزن الكنغر الأحمر بالكيلوجرام؟", answer: 85, unit: "الرقم", img: "https://loremflickr.com/500/350/red-kangaroo" },
+      { q: "كم طول قناة السويس بالكيلومتر؟", answer: 193, unit: "الرقم", img: "https://loremflickr.com/500/350/suez-canal" },
+      { q: "كم عدد أرجل العقرب؟", answer: 8, unit: "الرقم", img: "https://loremflickr.com/500/350/scorpion" },
+      { q: "كم وزن الفهد بالكيلوجرام؟", answer: 60, unit: "الرقم", img: "https://loremflickr.com/500/350/cheetah" },
+      { q: "كم ارتفاع قوس النصر في باريس بالمتر؟", answer: 50, unit: "الرقم", img: "https://loremflickr.com/500/350/arc-de-triomphe" },
+      { q: "كم طول نهر المسيسيبي بالكيلومتر؟", answer: 3766, unit: "الرقم", img: "https://loremflickr.com/500/350/mississippi-river" },
+      { q: "كم عدد أسنان القط؟", answer: 30, unit: "الرقم", img: "https://loremflickr.com/500/350/cat-teeth" },
+      { q: "كم وزن الفقمة الفيلية بالكيلوجرام؟", answer: 3000, unit: "الرقم", img: "https://loremflickr.com/500/350/elephant-seal" },
+      { q: "كم ارتفاع برج سي إن تاور بالمتر؟", answer: 553, unit: "الرقم", img: "https://loremflickr.com/500/350/cn-tower" },
+      { q: "كم طول التمساح النيلي بالمتر؟", answer: 5, unit: "الرقم", img: "https://loremflickr.com/500/350/nile-crocodile" },
+      { q: "كم عدد أرجل الجراد؟", answer: 6, unit: "الرقم", img: "https://loremflickr.com/500/350/grasshopper" },
+      { q: "كم وزن الحصان العربي بالكيلوجرام؟", answer: 450, unit: "الرقم", img: "https://loremflickr.com/500/350/arabian-horse" },
+      { q: "كم ارتفاع تمثال بوذا ليشان العملاق بالمتر؟", answer: 71, unit: "الرقم", img: "https://loremflickr.com/500/350/leshan-giant-buddha" },
+      { q: "كم طول جسر ميلو الفياديك بالمتر؟", answer: 2460, unit: "الرقم", img: "https://loremflickr.com/500/350/millau-viaduct" },
+      { q: "كم وزن البطريق الإمبراطوري بالكيلوجرام؟", answer: 35, unit: "الرقم", img: "https://loremflickr.com/500/350/emperor-penguin" },
+      { q: "كم عدد أرجل الأخطبوط؟", answer: 8, unit: "الرقم", img: "https://loremflickr.com/500/350/octopus-legs" },
+      { q: "كم طول ديناصور الديبلودوكس بالمتر؟", answer: 27, unit: "الرقم", img: "https://loremflickr.com/500/350/diplodocus-dinosaur" },
+      { q: "كم وزن ديناصور التيرانوصور بالكيلوجرام؟", answer: 8000, unit: "الرقم", img: "https://loremflickr.com/500/350/trex-dinosaur" },
+      { q: "كم ارتفاع هرم خوفو بالمتر؟", answer: 146, unit: "الرقم", img: "https://loremflickr.com/500/350/great-pyramid-giza" },
+      { q: "كم عدد أوجه هرم خوفو؟", answer: 4, unit: "الرقم", img: "https://loremflickr.com/500/350/pyramid-of-giza" },
+      { q: "كم طول قناة بنما بالكيلومتر؟", answer: 82, unit: "الرقم", img: "https://loremflickr.com/500/350/panama-canal" },
+      { q: "كم وزن الحوت الأحدب بالطن؟", answer: 30, unit: "الرقم", img: "https://loremflickr.com/500/350/humpback-whale" },
+      { q: "كم عدد ألوان قوس قزح؟", answer: 7, unit: "الرقم", img: "https://loremflickr.com/500/350/rainbow" },
+      { q: "كم طول الحوت القاتل (الأوركا) بالمتر؟", answer: 8, unit: "الرقم", img: "https://loremflickr.com/500/350/orca-whale" },
+      { q: "كم وزن الحوت القاتل بالكيلوجرام؟", answer: 5500, unit: "الرقم", img: "https://loremflickr.com/500/350/orca" },
+      { q: "كم عدد أسنان الحوت القاتل تقريبًا؟", answer: 40, unit: "الرقم", img: "https://loremflickr.com/500/350/orca-teeth" },
+      { q: "كم طول سمكة القرش الأبيض الكبير بالمتر؟", answer: 6, unit: "الرقم", img: "https://loremflickr.com/500/350/great-white-shark" },
+      { q: "كم وزن سمكة القرش الأبيض الكبير بالكيلوجرام؟", answer: 1100, unit: "الرقم", img: "https://loremflickr.com/500/350/great-white-shark-swimming" },
+      { q: "كم ارتفاع مبنى إمباير ستيت بالمتر؟", answer: 443, unit: "الرقم", img: "https://loremflickr.com/500/350/empire-state-building" },
+      { q: "كم عدد طوابق برج خليفة؟", answer: 163, unit: "الرقم", img: "https://loremflickr.com/500/350/burj-khalifa-floors" },
+      { q: "كم طول جسر أكاشي كايكيو في اليابان بالمتر؟", answer: 3911, unit: "الرقم", img: "https://loremflickr.com/500/350/akashi-kaikyo-bridge" },
+      { q: "كم عدد عجلات سيارة فورمولا 1؟", answer: 4, unit: "الرقم", img: "https://loremflickr.com/500/350/formula-1-car" },
+      { q: "كم عدد ركاب طائرة إيرباص A380 القصوى؟", answer: 853, unit: "الرقم", img: "https://loremflickr.com/500/350/airbus-a380" },
+      { q: "كم ارتفاع طائرة بوينج 747 بالمتر؟", answer: 19, unit: "الرقم", img: "https://loremflickr.com/500/350/boeing-747" },
+      { q: "كم وزن طائرة بوينج 747 فارغة بالطن؟", answer: 180, unit: "الرقم", img: "https://loremflickr.com/500/350/boeing-747-airplane" },
+      { q: "كم عدد عجلات طائرة بوينج 747؟", answer: 18, unit: "الرقم", img: "https://loremflickr.com/500/350/boeing-747-wheels" },
+      { q: "كم طول سفينة الحاويات إيما مايرسك بالمتر؟", answer: 397, unit: "الرقم", img: "https://loremflickr.com/500/350/container-ship" },
+      { q: "كم ارتفاع ساعة بيغ بن في لندن بالمتر؟", answer: 96, unit: "الرقم", img: "https://loremflickr.com/500/350/big-ben-london" },
+      { q: "كم عدد أجراس ساعة بيغ بن؟", answer: 5, unit: "الرقم", img: "https://loremflickr.com/500/350/big-ben-bells" },
+      { q: "كم ارتفاع قوس قسطنطين في روما بالمتر؟", answer: 21, unit: "الرقم", img: "https://loremflickr.com/500/350/arch-of-constantine" },
+      { q: "كم وزن أكبر تمساح مسجل بالكيلوجرام؟", answer: 1075, unit: "الرقم", img: "https://loremflickr.com/500/350/saltwater-crocodile" },
+      { q: "كم عدد بيوض الدجاجة سنويًا تقريبًا؟", answer: 300, unit: "الرقم", img: "https://loremflickr.com/500/350/chicken-eggs" },
+      { q: "كم عدد أرجل الحرباء؟", answer: 4, unit: "الرقم", img: "https://loremflickr.com/500/350/chameleon" },
+      { q: "كم طول الحرباء الكبيرة بالسنتيمتر؟", answer: 68, unit: "الرقم", img: "https://loremflickr.com/500/350/chameleon-large" },
+      { q: "كم عدد فقرات العمود الفقري للإنسان؟", answer: 33, unit: "الرقم", img: "https://loremflickr.com/500/350/human-spine" },
+      { q: "كم عدد عضلات الوجه البشري؟", answer: 43, unit: "الرقم", img: "https://loremflickr.com/500/350/human-face" },
+      { q: "كم طول أطول رجل مسجل في التاريخ بالسنتيمتر (روبرت واديلو)؟", answer: 272, unit: "الرقم", img: "https://loremflickr.com/500/350/tallest-man" },
+      { q: "كم عدد عظام الجمجمة البشرية؟", answer: 22, unit: "الرقم", img: "https://loremflickr.com/500/350/human-skull" },
+      { q: "كم وزن الحصان الأصيل بالكيلوجرام؟", answer: 500, unit: "الرقم", img: "https://loremflickr.com/500/350/thoroughbred-horse" },
+      { q: "كم طول نهر اليانغتسي بالكيلومتر؟", answer: 6300, unit: "الرقم", img: "https://loremflickr.com/500/350/yangtze-river" },
+      { q: "كم ارتفاع برج بتروناس التوأم بالمتر؟", answer: 452, unit: "الرقم", img: "https://loremflickr.com/500/350/petronas-towers" },
+    ];
+
+    // ============================
+    // GAME STATE
+    // ============================
+    let players = [];
+    let activePlayerIndices = [];
+    let currentQuestion = null;
+    let currentGuesses = []; // { playerIndex, value }
+    let guessTurn = 0; // index in activePlayerIndices
+    let usedQuestionIndices = new Set();
+    
+    // Tie-breaker state
+    let isTieBreaker = false;
+    let tieBreakerPlayers = [];
+
+    function renderPlayerSetup() {
+      const count = Math.max(2, Math.min(8, parseInt(document.getElementById('players-count').value) || 2));
+      const c = document.getElementById('players-setup-container');
+      c.innerHTML = '';
+      for(let i=0; i<count; i++) {
+        c.innerHTML += `<input type="text" class="input-field player-inp" placeholder="اسم اللاعب ${i+1}">`;
+      }
+    }
+    renderPlayerSetup();
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+    }
+
+    function startGame() {
+      const inputs = document.querySelectorAll('.player-inp');
+      players = Array.from(inputs).map((inp, i) => ({
+        name: inp.value.trim() || `اللاعب ${i+1}`,
+        hearts: 3,
+        eliminated: false
+      }));
+      activePlayerIndices = players.map((_, i) => i);
+      usedQuestionIndices.clear();
+      isTieBreaker = false;
+      tieBreakerPlayers = [];
+      pickQuestion();
+    }
+    
+    function getTurnPlayers() {
+        return isTieBreaker ? tieBreakerPlayers : activePlayerIndices;
+    }
+
+    function pickQuestion() {
+      let idx;
+      let attempts = 0;
+      do {
+        idx = Math.floor(Math.random() * QUESTIONS.length);
+        attempts++;
+      } while (usedQuestionIndices.has(idx) && attempts < 200);
+      usedQuestionIndices.add(idx);
+      currentQuestion = QUESTIONS[idx];
+      
+      document.getElementById('q-image').src = currentQuestion.img;
+      document.getElementById('q-text').textContent = currentQuestion.q;
+      
+      const unitText = document.getElementById('q-unit');
+      if (currentQuestion.unit && currentQuestion.unit !== "الرقم") {
+          unitText.style.display = 'block';
+          unitText.textContent = '📏 الوحدة: ' + currentQuestion.unit;
+      } else {
+          unitText.style.display = 'none';
+      }
+      
+      showScreen('question');
+    }
+
+    function startGuessing() {
+      currentGuesses = [];
+      guessTurn = 0;
+      showPassScreen();
+    }
+
+    function showPassScreen() {
+      const turnPlayers = getTurnPlayers();
+      if(guessTurn >= turnPlayers.length) {
+        showResults();
+        return;
+      }
+      const pIdx = turnPlayers[guessTurn];
+      document.getElementById('pass-player-name').textContent = players[pIdx].name;
+      showScreen('pass');
+    }
+
+    let currentNumpad = '';
+    let guessTimerInterval = null;
+    let guessTimeLeft = 10;
+
+    function startGuessTimer() {
+        guessTimeLeft = 10;
+        document.getElementById('timer-val').textContent = guessTimeLeft;
+        if(guessTimerInterval) clearInterval(guessTimerInterval);
+        guessTimerInterval = setInterval(() => {
+            guessTimeLeft--;
+            document.getElementById('timer-val').textContent = guessTimeLeft;
+            if(guessTimeLeft <= 0) {
+                clearInterval(guessTimerInterval);
+                if(!currentNumpad) currentNumpad = '0';
+                confirmGuess(true); // auto confirm
+            }
+        }, 1000);
+    }
+
+    function showGuessScreen() {
+      currentNumpad = '';
+      document.getElementById('numpad-display').textContent = '_';
+      document.getElementById('g-image').src = currentQuestion.img;
+      document.getElementById('g-text').textContent = currentQuestion.q;
+      
+      const unitText = document.getElementById('g-unit');
+      if (currentQuestion.unit && currentQuestion.unit !== "الرقم") {
+          unitText.style.display = 'block';
+          unitText.textContent = '📏 الوحدة: ' + currentQuestion.unit;
+      } else {
+          unitText.style.display = 'none';
+      }
+      
+      showScreen('guess');
+      startGuessTimer();
+    }
+
+    function numInput(val) {
+      if(val === 'del') {
+        currentNumpad = currentNumpad.slice(0, -1);
+      } else {
+        if(currentNumpad.length >= 10) return;
+        currentNumpad += val;
+      }
+      document.getElementById('numpad-display').textContent = currentNumpad || '_';
+    }
+
+    function confirmGuess(isAuto = false) {
+      if(!isAuto && (!currentNumpad || (currentNumpad === '0' && currentNumpad.length === 1))) {
+        alert('اكتب رقماً أولاً!');
+        return;
+      }
+      if(guessTimerInterval) clearInterval(guessTimerInterval);
+      
+      const turnPlayers = getTurnPlayers();
+      const pIdx = turnPlayers[guessTurn];
+      currentGuesses.push({ playerIndex: pIdx, value: parseInt(currentNumpad || '0') });
+      guessTurn++;
+      showPassScreen();
+    }
+
+    function showResults() {
+      const answer = currentQuestion.answer;
+      document.getElementById('result-answer').textContent = answer.toLocaleString('ar');
+      
+      const unitText = document.getElementById('result-unit');
+      if (currentQuestion.unit && currentQuestion.unit !== "الرقم") {
+          unitText.style.display = 'block';
+          unitText.textContent = currentQuestion.unit;
+      } else {
+          unitText.style.display = 'none';
+      }
+
+      // Sort guesses by proximity (closest first)
+      const sorted = [...currentGuesses].sort((a,b) => {
+        return Math.abs(a.value - answer) - Math.abs(b.value - answer);
+      });
+
+      // Find farthest guesser(s) (by absolute distance)
+      let maxDist = -1;
+      let farthestIndices = [];
+      
+      currentGuesses.forEach((g, i) => {
+        const dist = Math.abs(g.value - answer);
+        if(dist > maxDist) {
+          maxDist = dist;
+          farthestIndices = [i];
+        } else if (dist === maxDist) {
+          farthestIndices.push(i);
+        }
+      });
+      
+      const farthestPlayerIndices = farthestIndices.map(idx => currentGuesses[idx].playerIndex);
+
+      // Render guesses list
+      const list = document.getElementById('guesses-list');
+      list.innerHTML = '';
+      sorted.forEach(g => {
+        const p = players[g.playerIndex];
+        const dist = Math.abs(g.value - answer);
+        const isFarthest = farthestPlayerIndices.includes(g.playerIndex);
+        const hearts = '❤️'.repeat(Math.max(0, p.hearts)) + (p.eliminated ? ' (خارج)' : '');
+        list.innerHTML += `
+          <div class="guess-item ${isFarthest && farthestPlayerIndices.length === 1 ? 'loser-heart' : ''} ${isFarthest && farthestPlayerIndices.length > 1 ? 'tie-warning' : ''}">
+            <div>
+              <div class="guess-name">${p.name} ${isFarthest && farthestPlayerIndices.length === 1 ? '💔' : ''}${isFarthest && farthestPlayerIndices.length > 1 ? '⚔️' : ''}</div>
+              <div style="font-size:13px; color:#64748b;">الفرق: ${dist.toLocaleString('ar')}</div>
+            </div>
+            <div style="text-align:left;">
+              <div class="guess-val">${g.value.toLocaleString('ar')}</div>
+              <div class="guess-hearts">${hearts}</div>
+            </div>
+          </div>`;
+      });
+
+      // Render eliminated list
+      const eliminatedPlayers = players.filter(p => p.eliminated);
+      const elimList = document.getElementById('eliminated-list');
+      if (eliminatedPlayers.length > 0) {
+          elimList.innerHTML = '<p style="color:#ef4444; margin-bottom:5px;">💀 اللاعبون المستبعدون:</p>' + 
+            eliminatedPlayers.map(p => `<span style="text-decoration: line-through; margin-left: 10px; color:#94a3b8;">${p.name}</span>`).join('');
+      } else {
+          elimList.innerHTML = '';
+      }
+
+      const msgBox = document.getElementById('result-msg');
+      const msgText = document.getElementById('result-msg-text');
+      msgBox.style.display = 'block';
+      const nextBtn = document.getElementById('btn-next-round');
+
+      // Tie Breaker Logic
+      if (farthestPlayerIndices.length > 1) {
+          isTieBreaker = true;
+          tieBreakerPlayers = farthestPlayerIndices;
+          
+          const names = farthestPlayerIndices.map(idx => players[idx].name).join(' و ');
+          msgText.innerHTML = `تعادل بين <strong>${names}</strong>! ⚔️ جولة حاسمة بينهم!`;
+          
+          nextBtn.textContent = 'الجولة الحاسمة ⚔️';
+          nextBtn.onclick = nextRound;
+      } else {
+          // Normal elimination
+          const loserIdx = farthestPlayerIndices[0];
+          players[loserIdx].hearts--;
+          
+          let eliminatedMsg = '';
+          if(players[loserIdx].hearts <= 0) {
+            players[loserIdx].eliminated = true;
+            players[loserIdx].hearts = 0;
+            activePlayerIndices = activePlayerIndices.filter(i => i !== loserIdx);
+            eliminatedMsg = `<br><span style="color:#ef4444;">تم إقصاء ${players[loserIdx].name} لفقده جميع قلوبه! 💀</span>`;
+          }
+          
+          if (isTieBreaker) {
+              isTieBreaker = false;
+              tieBreakerPlayers = [];
+          }
+          
+          msgText.innerHTML = `اللاعب <strong>${players[loserIdx].name}</strong> خسر قلب، المتبقي ${players[loserIdx].hearts} ❤️${eliminatedMsg}`;
+          
+          if(activePlayerIndices.length === 1) {
+            nextBtn.textContent = 'رؤية الفائز 🏆';
+            nextBtn.onclick = showWinner;
+          } else if(activePlayerIndices.length === 0) {
+            nextBtn.textContent = 'انتهت اللعبة!';
+            nextBtn.onclick = showWinner;
+          } else {
+            nextBtn.textContent = 'الجولة التالية ➡';
+            nextBtn.onclick = nextRound;
+          }
+      }
+
+      showScreen('results');
+    }
+
+    function nextRound() {
+      pickQuestion();
+    }
+
+    function showWinner() {
+      const winnerId = activePlayerIndices.length > 0 ? activePlayerIndices[0] : players.reduce((best, p, i) => p.hearts > players[best].hearts ? i : best, 0);
+      document.getElementById('winner-name').textContent = players[winnerId].name;
+
+      // Final leaderboard
+      const sortedPlayers = [...players].map((p, i) => ({...p, id: i}))
+        .sort((a, b) => b.hearts - a.hearts || (a.eliminated ? 1 : -1));
+
+      const lb = document.getElementById('final-lb');
+      lb.innerHTML = '<p style="font-weight:bold; margin-bottom:12px; color:#94a3b8;">الترتيب النهائي</p>';
+      sortedPlayers.forEach((p, i) => {
+        const hearts = '❤️'.repeat(Math.max(0, p.hearts)) + (p.eliminated ? ' (خارج)' : '');
+        lb.innerHTML += `<div class="lb-row ${i === 0 ? 'top' : ''}">
+          <div class="lb-rank">#${i + 1}</div>
+          <div style="flex:1; text-align:right; font-weight:bold;">${p.name}</div>
+          <div>${hearts}</div>
+        </div>`;
+      });
+
+      showScreen('winner');
+    }
+  </script>  </script>
+</body>
+</html>

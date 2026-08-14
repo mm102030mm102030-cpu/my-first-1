@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>رفيق — كودنيمز</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body { padding-top: 64px; background: #0a0015; }
+
+    .bg-codenames {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at top, rgba(16, 185, 129, 0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at bottom left, rgba(5, 150, 105, 0.1) 0%, transparent 50%),
+                  #0a0015;
+      z-index: -1;
+    }
+
+    /* Game Layout */
+    .codenames-container {
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 300px 1fr 300px;
+      gap: 24px;
+      height: calc(100vh - 100px);
+    }
+
+    @media (max-width: 1200px) {
+      .codenames-container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+
+    /* Panels */
+    .side-panel {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 12px;
+    }
+
+    /* Scoreboard */
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+
+    .score-team {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .score-team.blue { color: #3b82f6; }
+    .score-team.red { color: #ef4444; }
+
+    .team-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .team-score { font-size: 32px; font-weight: 900; }
+
+    .vs-text { font-size: 18px; color: rgba(255,255,255,0.3); font-weight: 800; }
+
+    /* Players list */
+    .team-section {
+      margin-top: 10px;
+    }
+    .team-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 8px;
+    }
+    
+    .c-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-right: 4px solid transparent;
+    }
+    .c-player.blue-team { border-color: #3b82f6; }
+    .c-player.red-team { border-color: #ef4444; }
+
+    .c-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .c-name { font-size: 14px; color: white; flex: 1; }
+    .c-role { font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 20px; }
+
+    /* Board Area */
+    .board-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .turn-indicator {
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      padding: 12px 30px;
+      border-radius: 50px;
+      color: #93c5fd;
+      font-weight: 800;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: pulseBlue 2s infinite;
+    }
+
+    @keyframes pulseBlue {
+      0%, 100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+    }
+
+    /* Grid */
+    .words-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .word-card {
+      aspect-ratio: 2/1;
+      background: #f3f4f6;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #1f2937;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -4px 0 rgba(0,0,0,0.1);
+      transition: all 0.2s;
+      position: relative;
+      user-select: none;
+    }
+
+    .word-card:hover { transform: translateY(-4px); box-shadow: 0 8px 12px rgba(0,0,0,0.2), inset 0 -4px 0 rgba(0,0,0,0.1); }
+    .word-card:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+    /* Revealed States */
+    .word-card.revealed {
+      cursor: default;
+      transform: none !important;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
+      color: white;
+    }
+    
+    .word-card.revealed.blue { background: #3b82f6; }
+    .word-card.revealed.red { background: #ef4444; }
+    .word-card.revealed.neutral { background: #d1d5db; color: #4b5563; }
+    .word-card.revealed.assassin { background: #111827; color: #ef4444; }
+
+    /* Spymaster View */
+    .spymaster-view .word-card {
+      color: rgba(31, 41, 55, 0.5); /* Dim text */
+    }
+    .spymaster-view .word-card::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 8px;
+      border: 3px solid transparent;
+      pointer-events: none;
+    }
+    .spymaster-view .word-card.hint-blue::after { border-color: #3b82f6; }
+    .spymaster-view .word-card.hint-red::after { border-color: #ef4444; }
+    .spymaster-view .word-card.hint-neutral::after { border-color: #9ca3af; }
+    .spymaster-view .word-card.hint-assassin::after { border-color: #111827; background: rgba(17,24,39,0.1); }
+    
+    .spymaster-view .word-card.revealed { color: white; }
+    .spymaster-view .word-card.revealed.neutral { color: #4b5563; }
+
+    /* Clue Input (Spymaster only) */
+    .clue-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      gap: 12px;
+      margin-top: auto;
+    }
+
+    .clue-input {
+      flex: 2;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: white;
+      font-size: 16px;
+      font-family: 'Tajawal', sans-serif;
+      outline: none;
+    }
+
+    .clue-number {
+      flex: 1;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      outline: none;
+    }
+
+    .clue-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0 24px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Current Clue Display */
+    .current-clue {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .current-clue-title { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px; text-transform: uppercase; }
+    .current-clue-text { font-size: 24px; font-weight: 900; letter-spacing: 1px; color: white; }
+    .current-clue-text span { color: #34d399; }
+
+    /* End turn btn */
+    .end-turn-btn {
+      width: 100%;
+      padding: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: auto;
+      transition: all 0.2s;
+    }
+    .end-turn-btn:hover { background: rgba(255,255,255,0.1); }
+
+  </style>
+</head>
+<body>
+  <div class="bg-codenames"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+    <div class="navbar-user">
+      <div class="user-avatar" id="nav-avatar">ر</div>
+    </div>
+  </nav>
+
+  <style>
+    .tut-screen { max-width:600px; margin: 80px auto; padding: 20px; color: white; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.6); border-radius: 24px; border: 1px solid rgba(16,185,129,0.3); backdrop-filter: blur(10px); }
+    .tut-list { text-align: right; width: 100%; margin: 20px 0; font-size: 16px; line-height: 1.6; opacity: 0.9; padding: 0; }
+    .tut-list li { margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; list-style: none; display: flex; gap: 10px; align-items: flex-start; }
+    .btn-3d { background: #10b981; color: white; border: none; border-radius: 16px; padding: 16px; font-size: 20px; font-weight: 900; font-family: 'Tajawal', sans-serif; box-shadow: 0 6px 0 #047857; cursor: pointer; transition: 0.1s; width: 100%; text-align: center; }
+    .btn-3d:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+  </style>
+
+  <div class="tut-screen" id="tutorial-screen">
+    <div style="font-size: 60px; margin-bottom: 10px; animation: pulseBlue 2s infinite;">🔑</div>
+    <h1 style="font-size: 32px; font-weight: 900; margin-bottom: 10px; color: #34d399;">كيف تلعب كودنيمز؟</h1>
+    <p style="opacity:0.8; font-size:18px;">لعبة الكلمات السرية والفريقين!</p>
+    <ul class="tut-list">
+      <li><span>👥</span> <div><strong>الفرق:</strong> ينقسم اللاعبين لفريقين (أزرق وأحمر). كل فريق له "رئيس جواسيس" والباقي "عملاء".</div></li>
+      <li><span>🧠</span> <div><strong>رئيس الجواسيس:</strong> يشوف الكلمات التابعة لفريقه (ملونة) ويعطي تلميح من (كلمة واحدة + رقم). مثلاً: "بحر - 2".</div></li>
+      <li><span>🕵️‍♂️</span> <div><strong>العملاء:</strong> يحاولون يخمنون الكلمات اللي يقصدها رئيسهم بناءً على التلميح.</div></li>
+      <li><span>⚠️</span> <div><strong>احذر:</strong> إذا اخترت كلمة للفريق الثاني، يروح الدور لهم. وإذا اخترت القاتل (اللون الأسود)، يخسر فريقك فورا!</div></li>
+      <li><span>🏆</span> <div><strong>الفوز:</strong> أول فريق يكتشف كل كلماته هو الفائز.</div></li>
+    </ul>
+    <button class="btn-3d" onclick="document.getElementById('tutorial-screen').style.display='none'; document.getElementById('game-content').style.display='grid';">فهمت، ابدأ اللعب 🚀</button>
+  </div>
+
+  <div class="codenames-container" id="game-content" style="display: none;">
+    
+    <!-- Right Panel: Players -->
+    <div class="side-panel">
+      <div class="panel-title">👥 الفرق</div>
+      
+      <div class="score-board">
+        <div class="score-team blue">
+          <div class="team-name">الفريق الأزرق</div>
+          <div class="team-score">8</div>
+        </div>
+        <div class="vs-text">VS</div>
+        <div class="score-team red">
+          <div class="team-name">الفريق الأحمر</div>
+          <div class="team-score">7</div>
+        </div>
+      </div>
+
+      <div class="team-section">
+        <div class="team-section-title">الفريق الأزرق</div>
+        <div class="c-player blue-team">
+          <div class="c-avatar" style="background: #3b82f6;">👤</div>
+          <div class="c-name">رفيق (أنت)</div>
+          <div class="c-role">رئيس جواسيس</div>
+        </div>
+        <div class="c-player blue-team">
+          <div class="c-avatar" style="background: #3b82f6;">🤖</div>
+          <div class="c-name">خالد</div>
+          <div class="c-role">عميل</div>
+        </div>
+      </div>
+
+      <div class="team-section">
+        <div class="team-section-title">الفريق الأحمر</div>
+        <div class="c-player red-team">
+          <div class="c-avatar" style="background: #ef4444;">🤖</div>
+          <div class="c-name">سارة</div>
+          <div class="c-role">رئيس جواسيس</div>
+        </div>
+        <div class="c-player red-team">
+          <div class="c-avatar" style="background: #ef4444;">🤖</div>
+          <div class="c-name">عمر</div>
+          <div class="c-role">عميل</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Board -->
+    <div class="board-area">
+      <div class="turn-indicator">دور الفريق الأزرق 🔵</div>
+      
+      <!-- Current Clue (Visible when operatives are guessing) -->
+      <!-- <div class="current-clue">
+        <div class="current-clue-title">التلميح الحالي</div>
+        <div class="current-clue-text">فضاء - <span>2</span></div>
+      </div> -->
+
+      <div class="words-grid spymaster-view">
+        <div class="word-card hint-blue">قمر</div>
+        <div class="word-card hint-red">شجرة</div>
+        <div class="word-card hint-neutral">طاولة</div>
+        <div class="word-card hint-blue revealed blue">بحر</div>
+        <div class="word-card hint-assassin">سم</div>
+        
+        <div class="word-card hint-neutral">مفتاح</div>
+        <div class="word-card hint-red revealed red">نار</div>
+        <div class="word-card hint-blue">نجم</div>
+        <div class="word-card hint-red">أسد</div>
+        <div class="word-card hint-neutral">كتاب</div>
+        
+        <div class="word-card hint-blue">سفينة</div>
+        <div class="word-card hint-red">سيف</div>
+        <div class="word-card hint-blue">صقر</div>
+        <div class="word-card hint-neutral">جدار</div>
+        <div class="word-card hint-red">تفاحة</div>
+        
+        <div class="word-card hint-blue">جبل</div>
+        <div class="word-card hint-neutral">ساعة</div>
+        <div class="word-card hint-red">دم</div>
+        <div class="word-card hint-blue">ثلج</div>
+        <div class="word-card hint-neutral">باب</div>
+        
+        <div class="word-card hint-red">قلب</div>
+        <div class="word-card hint-blue">عاصفة</div>
+        <div class="word-card hint-red">ذهب</div>
+        <div class="word-card hint-neutral">عين</div>
+        <div class="word-card hint-blue">ليل</div>
+      </div>
+
+      <!-- Spymaster Clue Input -->
+      <div class="clue-box">
+        <input type="text" class="clue-input" placeholder="اكتب كلمة واحدة (التلميح)..." />
+        <input type="number" class="clue-number" placeholder="العدد" min="0" max="9" />
+        <button class="clue-btn">إرسال 🚀</button>
+      </div>
+
+    </div>
+
+    <!-- Left Panel: Log -->
+    <div class="side-panel">
+      <div class="panel-title">📜 سجل اللعبة</div>
+      
+      <div class="log-container" style="flex:1; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 12px; overflow-y: auto;">
+        <div class="log-entry" style="color:#ef4444;"><strong>سارة:</strong> أعطت تلميح: (حرارة - 2)</div>
+        <div class="log-entry" style="color:#ef4444;"><strong>عمر:</strong> اختار (نار) - إجابة صحيحة!</div>
+        <div class="log-entry" style="color:#ef4444;"><strong>عمر:</strong> اختار (بحر) - إجابة خاطئة (أزرق).</div>
+        <div class="log-entry" style="color:#3b82f6;"><strong>النظام:</strong> انتهى دور الفريق الأحمر. دور الفريق الأزرق.</div>
+      </div>
+
+      <button class="end-turn-btn">إنهاء الدور ✋</button>
+    </div>
+
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script>
+    function confirmExit() {
+      if(confirm("هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.")) {
+        window.location.href = "../index.html";
+      }
+    }
+
+    const user = requireAuth();
+    if (user) {
+      document.getElementById('nav-avatar').textContent = user.avatar;
+      document.getElementById('nav-avatar').style.background = `linear-gradient(135deg, ${user.avatarColor}, #1a1040)`;
+    }
+  </script>
+</body>
+</html>

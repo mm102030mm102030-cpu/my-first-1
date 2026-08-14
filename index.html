@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#020617" />
+  <title>رفيق — منصة الألعاب</title>
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #8b5cf6;
+      --primary-dark: #6d28d9;
+      --accent: #f59e0b;
+      --bg: #020617;
+      --surface: rgba(30, 41, 59, 0.7);
+    }
+    
+    body {
+      background: var(--bg);
+      font-family: 'Tajawal', sans-serif;
+      color: white;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* BACKGROUND ANIMATION */
+    .bg-animation {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: -1;
+      overflow: hidden;
+      background: #020617;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      animation: float 20s infinite ease-in-out alternate;
+    }
+    .orb-1 {
+      width: 400px; height: 400px;
+      background: #8b5cf6;
+      top: -100px; right: -100px;
+    }
+    .orb-2 {
+      width: 500px; height: 500px;
+      background: #3b82f6;
+      bottom: -150px; left: -100px;
+      animation-delay: -5s;
+    }
+    .orb-3 {
+      width: 300px; height: 300px;
+      background: #ec4899;
+      top: 40%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -10s;
+    }
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
+    /* ===== SPLASH SCREEN ===== */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: #020617;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+    .splash-logo {
+      font-size: 80px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff, #c4b5fd, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      animation: popIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
+    }
+    .splash-subtitle {
+      font-size: 20px;
+      color: rgba(255,255,255,0.6);
+      animation: fadeIn 1s ease 0.5s both;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .content-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      padding: 0 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    body.ready .content-wrapper { opacity: 1; }
+
+    .header {
+      padding: 30px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .top-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+    .top-btn:hover { opacity: 0.8; }
+
+    .brand {
+      font-size: 36px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff, #c4b5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+      letter-spacing: 2px;
+      text-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+    }
+
+    .hero {
+      text-align: center;
+      padding: 40px 0 60px;
+    }
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 900;
+      margin: 0 0 16px;
+      line-height: 1.2;
+    }
+    .hero p {
+      font-size: 22px;
+      color: rgba(255,255,255,0.7);
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 500;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      padding-bottom: 60px;
+      width: 100%;
+    }
+
+    /* 3D Game Cards */
+    .game-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 32px;
+      padding: 32px;
+      text-align: center;
+      text-decoration: none;
+      color: white;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent 60%);
+      pointer-events: none;
+    }
+
+    .game-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .game-card:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* Bara Al Salfa Card */
+    .card-bara {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(190, 18, 60, 0.3));
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      box-shadow: 0 20px 40px rgba(190, 18, 60, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    .card-bara:hover {
+      border-color: rgba(244, 63, 94, 0.6);
+      box-shadow: 0 30px 60px rgba(190, 18, 60, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .card-bara .g-btn { background: #be123c; color: white; box-shadow: 0 6px 0 #881337; }
+    .card-bara .g-btn:active { box-shadow: 0 0px 0 #881337; }
+
+    /* Mafia Card */
+    .card-mafia {
+      background: linear-gradient(135deg, rgba(51, 65, 85, 0.1), rgba(15, 23, 42, 0.5));
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 20px 40px rgba(2, 6, 23, 0.4), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    .card-mafia:hover {
+      border-color: rgba(148, 163, 184, 0.5);
+      box-shadow: 0 30px 60px rgba(2, 6, 23, 0.6), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .card-mafia .g-btn { background: #1e293b; color: white; box-shadow: 0 6px 0 #020617; }
+    .card-mafia .g-btn:active { box-shadow: 0 0px 0 #020617; }
+    .card-mafia .g-btn { background: #1e293b; color: white; box-shadow: 0 6px 0 #020617; }
+    .card-mafia .g-btn:active { box-shadow: 0 0px 0 #020617; }
+
+    /* Letter Bomb Card */
+    .card-letter-bomb {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(225, 29, 72, 0.3));
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      box-shadow: 0 20px 40px rgba(190, 18, 60, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    .card-letter-bomb:hover {
+      border-color: rgba(244, 63, 94, 0.6);
+      box-shadow: 0 30px 60px rgba(190, 18, 60, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .card-letter-bomb .g-btn { background: #e11d48; color: white; box-shadow: 0 6px 0 #9f1239; }
+    .card-letter-bomb .g-btn:active { box-shadow: 0 0px 0 #9f1239; }
+
+    /* Say It Backwards Card */
+    .card-say-backwards {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(55, 48, 163, 0.3));
+      border: 1px solid rgba(79, 70, 229, 0.3);
+      box-shadow: 0 20px 40px rgba(49, 46, 129, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    .card-say-backwards:hover {
+      border-color: rgba(79, 70, 229, 0.6);
+      box-shadow: 0 30px 60px rgba(49, 46, 129, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .card-say-backwards .g-btn { background: #4f46e5; color: white; box-shadow: 0 6px 0 #3730a3; }
+    .card-say-backwards .g-btn:active { box-shadow: 0 0px 0 #3730a3; }
+
+    /* Challenge 30 Card */
+    .card-challenge-30 {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(180, 83, 9, 0.3));
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      box-shadow: 0 20px 40px rgba(120, 53, 15, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    .card-challenge-30:hover {
+      border-color: rgba(245, 158, 11, 0.6);
+      box-shadow: 0 30px 60px rgba(120, 53, 15, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .card-challenge-30 .g-btn { background: #f59e0b; color: white; box-shadow: 0 6px 0 #b45309; }
+    .card-challenge-30 .g-btn:active { box-shadow: 0 0px 0 #b45309; }
+
+    /* Guessing Card */
+    .card-guessing {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(67, 56, 202, 0.3));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      box-shadow: 0 20px 40px rgba(49, 46, 129, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    .card-guessing:hover {
+      border-color: rgba(99, 102, 241, 0.6);
+      box-shadow: 0 30px 60px rgba(49, 46, 129, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .card-guessing .g-btn { background: #6366f1; color: white; box-shadow: 0 6px 0 #4338ca; }
+    .card-guessing .g-btn:active { box-shadow: 0 0px 0 #4338ca; }
+
+    /* Charades Card */
+    .card-charades {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(190, 24, 93, 0.3));
+      border: 1px solid rgba(236, 72, 153, 0.3);
+      box-shadow: 0 20px 40px rgba(131, 24, 67, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    .card-charades:hover {
+      border-color: rgba(236, 72, 153, 0.6);
+      box-shadow: 0 30px 60px rgba(131, 24, 67, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .card-charades .g-btn { background: #ec4899; color: white; box-shadow: 0 6px 0 #be185d; }
+    .card-charades .g-btn:active { box-shadow: 0 0px 0 #be185d; }
+
+    .g-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); }
+    .g-title { font-size: 32px; font-weight: 900; margin-bottom: 12px; letter-spacing: -1px; }
+    .g-desc { font-size: 18px; color: rgba(255,255,255,0.7); margin-bottom: 30px; line-height: 1.5; font-weight: 500; }
+    
+    .g-btn { 
+      padding: 16px; 
+      border-radius: 16px; 
+      font-weight: 900; 
+      font-size: 20px; 
+      margin-top: auto;
+      transition: 0.1s;
+      font-family: 'Tajawal', sans-serif;
+    }
+    .g-btn:active { transform: translateY(6px); }
+
+    .footer {
+      padding: 40px 0;
+      display: flex;
+      justify-content: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin-top: auto;
+    }
+
+    .support-link {
+      background: #5865F2;
+      color: white;
+      padding: 16px 40px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 800;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      box-shadow: 0 6px 0 #4752C4, 0 10px 20px rgba(88, 101, 242, 0.3);
+    }
+    .support-link:hover { 
+      transform: translateY(-4px);
+      box-shadow: 0 10px 0 #4752C4, 0 15px 30px rgba(88, 101, 242, 0.4);
+    }
+    .support-link:active {
+      transform: translateY(6px);
+      box-shadow: 0 0 0 #4752C4;
+    }
+    .discord-icon {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- BACKGROUND -->
+  <div class="bg-animation">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash-screen">
+    <div class="splash-logo">رفيق</div>
+    <div class="splash-subtitle">منصة ألعاب التجمعات الممتعة</div>
+  </div>
+
+  <div class="content-wrapper">
+    <header class="header">
+      <div class="brand">رفيق</div>
+      <a href="https://discord.gg/rest1" target="_blank" class="top-btn" style="background: rgba(236, 72, 153, 0.2); color: #fbcfe8;">انضم إلينا 🤝</a>
+    </header>
+
+    <div class="hero">
+      <h1>أهلاً بك في منصة رفيق 🎮</h1>
+      <p>اختر اللعبة المناسبة لجمعتك وابدأ المتعة فوراً بجهاز واحد فقط!</p>
+    </div>
+
+    <div class="games-grid">
+      <!-- Bara Al Salfa -->
+      <a href="games/bara-alsalfa.html" class="game-card card-bara">
+        <div class="g-icon">🤫</div>
+        <div class="g-title">برا السالفة</div>
+        <div class="g-desc">اكتشف من هو الإمبوستر الذي لا يعرف السالفة، أو حاول خداعهم إن كنت أنت!</div>
+        <div class="g-btn">العب الآن 🚀</div>
+      </a>
+
+      <!-- Mafia -->
+      <a href="games/mafia.html" class="game-card card-mafia">
+        <div class="g-icon">🕵️</div>
+        <div class="g-title">المافيا</div>
+        <div class="g-desc">اكتشفوا المافيا قبل أن يقضوا عليكم في الليل! (بإدارة الحكم)</div>
+        <div class="g-btn">العب الآن 🚀</div>
+      </a>
+
+      <!-- Letter Bomb -->
+      <a href="games/letter-bomb.html" class="game-card card-letter-bomb">
+        <div class="g-icon">💣</div>
+        <div class="g-title">قنبلة الحروف</div>
+        <div class="g-desc">جاوب بسرعة قبل ما تنفجر القنبلة! لعبة سرعة بديهة وكلمات مشوقة.</div>
+        <div class="g-btn">العب الآن 🚀</div>
+      </a>
+
+      <!-- Say It Backwards -->
+      <a href="games/say-it-backwards.html" class="game-card card-say-backwards">
+        <div class="g-icon">🤪</div>
+        <div class="g-title">احكيها بالعكس</div>
+        <div class="g-desc">لعبة صوتية مضحكة، تعكس كلامك وتتحداك تقلده!</div>
+        <div class="g-btn">العب الآن 🚀</div>
+      </a>
+
+      <!-- Challenge 30 -->
+      <a href="games/challenge-30.html" class="game-card card-challenge-30">
+        <div class="g-icon">⏱️</div>
+        <div class="g-title">تحدي الثلاثين</div>
+        <div class="g-desc">كم تقدر تذكر أشياء خلال 30 ثانية؟ نافسهم في المزاد وأثبت نفسك!</div>
+        <div class="g-btn">العب الآن 🚀</div>
+      </a>
+
+      <!-- Guessing Game -->
+      <a href="games/guessing.html" class="game-card card-guessing">
+        <div class="g-icon">🧠</div>
+        <div class="g-title">التخمين</div>
+        <div class="g-desc">خمن الأرقام الصحيحة، والأبعد تخميناً يخسر قلباً! 3 قلوب واللعبة تبدأ!</div>
+        <div class="g-btn">العب الآن 🚀</div>
+      </a>
+
+      <!-- Charades -->
+      <a href="games/charades.html" class="game-card card-charades">
+        <div class="g-icon">🎭</div>
+        <div class="g-title">بدون كلام</div>
+        <div class="g-desc">مثل لأصحابك الكلمة بدون ما تتكلم! تحدى الوقت وفرص السرقة المثيرة.</div>
+        <div class="g-btn">العب الآن 🚀</div>
+      </a>
+    </div>
+
+    <footer class="footer">
+      <a href="https://discord.gg/REST1" target="_blank" class="support-link">
+        <svg class="discord-icon" viewBox="0 0 127.14 96.36">
+          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a67.55,67.55,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14c0,0,.04-.06.09-.09C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.2,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+        </svg>
+        الدعم الفني والشكاوي
+      </a>
+    </footer>
+  </div>
+
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        document.body.classList.add('ready');
+      }, 2500);
+    });
+  </script>
+</body>
+</html>

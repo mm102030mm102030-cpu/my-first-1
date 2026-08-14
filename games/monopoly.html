@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>رفيق — المونوبولي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body { padding-top: 64px; background: #0a1500; }
+    .bg-mono {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at top, rgba(245,158,11,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at bottom, rgba(5,150,105,0.1) 0%, transparent 50%), #0a1500;
+      z-index: -1;
+    }
+    .setup-panel { max-width: 700px; margin: 32px auto; padding: 0 20px; }
+    .phase-header { text-align: center; margin-bottom: 32px; }
+    .phase-icon { font-size: 64px; margin-bottom: 12px; }
+    .phase-title { font-size: 36px; font-weight: 900; background: linear-gradient(135deg, #fff 0%, #fcd34d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .phase-subtitle { color: rgba(255,255,255,0.4); font-size: 14px; margin-top: 8px; }
+    .setup-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(245,158,11,0.15); border-radius: 20px; padding: 24px; margin-bottom: 16px; }
+    .setup-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: rgba(255,255,255,0.8); display: flex; align-items: center; gap: 8px; }
+    #game-phase { display: none; }
+    .game-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .board-wrap { background: rgba(255,255,255,0.03); border: 1px solid rgba(245,158,11,0.15); border-radius: 20px; overflow: hidden; }
+    .board-title { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
+    .property-track { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; padding: 16px; }
+    .property-cell { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 4px; text-align: center; font-size: 10px; cursor: pointer; transition: all 0.2s; min-height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; position: relative; }
+    .property-cell:hover { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+    .cell-color { width: 100%; height: 8px; border-radius: 4px; margin-bottom: 4px; }
+    .cell-icon { font-size: 16px; }
+    .cell-name { font-size: 9px; color: rgba(255,255,255,0.7); line-height: 1.2; }
+    .cell-price { font-size: 9px; color: rgba(245,158,11,0.7); margin-top: 2px; }
+    .cell-player-dot { width: 12px; height: 12px; border-radius: 50%; font-size: 8px; display: inline-flex; align-items: center; justify-content: center; color: white; font-weight: 800; margin: 1px; }
+    .cell-current { box-shadow: 0 0 12px rgba(245,158,11,0.5); border-color: rgba(245,158,11,0.6) !important; }
+    .side-panel { display: flex; flex-direction: column; gap: 14px; }
+    .player-panel { background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; transition: all 0.3s; }
+    .player-panel.active { border-color: rgba(245,158,11,0.6); box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+    .pp-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .pp-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+    .pp-name { font-size: 15px; font-weight: 800; }
+    .pp-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .pp-money { font-size: 22px; font-weight: 900; color: #f59e0b; margin-bottom: 8px; }
+    .pp-properties { display: flex; flex-wrap: wrap; gap: 4px; }
+    .pp-prop { padding: 3px 8px; border-radius: 50px; font-size: 10px; font-weight: 600; color: white; }
+    .controls-panel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; }
+    .dice-row { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; justify-content: center; }
+    .dice-big { width: 70px; height: 70px; background: white; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; user-select: none; }
+    .dice-big:hover { transform: scale(1.05); }
+    .dice-big.rolling { animation: roll 0.5s ease-in-out; }
+    .game-log { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; max-height: 150px; overflow-y: auto; font-size: 12px; }
+    .log-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); }
+    .log-entry:last-child { border-bottom: none; }
+    .log-entry.highlight { color: #fcd34d; }
+    .buy-modal-content { text-align: center; padding: 10px; }
+    .buy-prop-icon { font-size: 50px; margin-bottom: 12px; }
+    .buy-prop-name { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+    .buy-prop-rent { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+    .buy-price { font-size: 32px; font-weight: 900; color: #f59e0b; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="bg-mono"></div>
+  <div class="grid-overlay"></div>
+  <nav class="navbar">
+    <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+    <div class="navbar-user">
+      <a href="https://discord.gg/rest1" target="_blank" class="btn-icon" title="Discord" style="background:rgba(88,101,242,0.2);border-color:rgba(88,101,242,0.4);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865f2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.045.036.061a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      </a>
+      <div class="user-avatar" id="nav-avatar">ر</div>
+      <span class="user-tag" id="nav-name">رفيق</span>
+    </div>
+  </nav>
+  <div id="toast-container"></div>
+
+  <style>
+    .tut-screen { max-width:700px; margin: 40px auto; padding: 20px; color: white; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.6); border-radius: 24px; border: 1px solid rgba(245,158,11,0.3); backdrop-filter: blur(10px); }
+    .tut-list { text-align: right; width: 100%; margin: 20px 0; font-size: 16px; line-height: 1.6; opacity: 0.9; padding: 0; }
+    .tut-list li { margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; list-style: none; display: flex; gap: 10px; align-items: flex-start; }
+    .btn-3d { background: #f59e0b; color: white; border: none; border-radius: 16px; padding: 16px; font-size: 20px; font-weight: 900; font-family: 'Tajawal', sans-serif; box-shadow: 0 6px 0 #b45309; cursor: pointer; transition: 0.1s; width: 100%; text-align: center; }
+    .btn-3d:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+  </style>
+
+  <div class="tut-screen" id="tutorial-screen">
+    <div style="font-size: 60px; margin-bottom: 10px; animation: bounce 2s infinite alternate;">🏦</div>
+    <h1 style="font-size: 32px; font-weight: 900; margin-bottom: 10px; color: #fbbf24;">كيف تلعب المونوبولي؟</h1>
+    <p style="opacity:0.8; font-size:18px;">لعبة العقارات والتجارة، كن المليونير الأكبر!</p>
+    <ul class="tut-list">
+      <li><span>🎲</span> <div><strong>الرمي:</strong> في دورك، ارمِ النرد لتتحرك على الخريطة.</div></li>
+      <li><span>🏠</span> <div><strong>الشراء:</strong> إذا وقفت على عقار غير مملوك وتقدر على سعره، اشتريه! عشان تاخذ إيجار من أي لاعب يوقف عليه بعدك.</div></li>
+      <li><span>💸</span> <div><strong>الإيجار:</strong> إذا وقفت على عقار مملوك لغيرك، لازم تدفع له إيجار غصباً عنك.</div></li>
+      <li><span>⭐</span> <div><strong>فرص وصناديق:</strong> ممكن تعطيك فلوس أو تاخذ منك فلوس (حظك نصيبك!).</div></li>
+      <li><span>💀</span> <div><strong>الإفلاس:</strong> إذا خلصت فلوسك وما قدرت تدفع اللي عليك، تفلس وتطلع برا اللعبة. آخر واحد يبقى هو الفائز!</div></li>
+    </ul>
+    <button class="btn-3d" onclick="document.getElementById('tutorial-screen').style.display='none'; document.getElementById('setup-phase').style.display='block';">فهمت، ابدأ اللعب 🚀</button>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup-phase" style="display: none;">
+    <div class="setup-panel">
+      <div class="phase-header">
+        <div class="phase-icon">🏦</div>
+        <h1 class="phase-title">المونوبولي</h1>
+        <p class="phase-subtitle">اشترِ العقارات وابنِ فنادقك لتصبح أغنى لاعب!</p>
+      </div>
+      <div class="setup-card">
+        <h3>⚙️ إعدادات</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label class="input-label">عدد البوتات</label>
+            <select id="bot-count" class="input-field" style="cursor:pointer;">
+              <option value="1">بوت واحد</option>
+              <option value="2" selected>بوتان</option>
+              <option value="3">3 بوتات</option>
+            </select>
+          </div>
+          <div>
+            <label class="input-label">المال الابتدائي</label>
+            <select id="start-money" class="input-field" style="cursor:pointer;">
+              <option value="1500" selected>1500 💰</option>
+              <option value="2000">2000 💰</option>
+              <option value="3000">3000 💰</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="startGame()" style="font-size:18px;padding:18px;">🎲 ابدأ اللعبة!</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game-phase">
+    <div class="game-layout">
+      <div>
+        <div class="board-wrap">
+          <div class="board-title">
+            <span>🗺 لوحة المونوبولي</span>
+            <span id="current-turn-badge" style="font-size:13px;color:rgba(255,255,255,0.5);">دور: ---</span>
+          </div>
+          <div class="property-track" id="property-track"></div>
+        </div>
+      </div>
+      <div class="side-panel">
+        <div class="controls-panel">
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;color:rgba(255,255,255,0.6);" id="action-label">🎲 رمِّ النرد!</h4>
+          <div class="dice-row">
+            <div class="dice-big" id="dice1">🎲</div>
+            <div style="font-size:24px;font-weight:900;color:rgba(255,255,255,0.5);">+</div>
+            <div class="dice-big" id="dice2">🎲</div>
+          </div>
+          <button class="btn-primary" id="roll-btn" onclick="rollDice()">🎲 رمِّ النرد</button>
+          <div class="game-log" id="game-log" style="margin-top:14px;"></div>
+        </div>
+        <div id="players-side"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buy Modal -->
+  <div id="buy-modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="declineBuy()"></div>
+    <div class="modal-content">
+      <div class="buy-modal-content">
+        <div class="buy-prop-icon" id="buy-icon">🏠</div>
+        <div class="buy-prop-name" id="buy-name">عقار</div>
+        <div class="buy-prop-rent" id="buy-rent">الإيجار: 50 💰</div>
+        <div class="buy-price" id="buy-price">200 💰</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-primary" onclick="confirmBuy()">شراء ✅</button>
+          <button class="btn-secondary" onclick="declineBuy()">رفض ❌</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Win Screen -->
+  <div id="win-screen" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;backdrop-filter:blur(10px);">
+    <div style="text-align:center;animation:modalSlide 0.4s ease-out;max-width:500px;padding:20px;">
+      <div style="font-size:80px;margin-bottom:20px;">🏆</div>
+      <h2 style="font-size:48px;font-weight:900;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;" id="win-title">أنت الأغنى!</h2>
+      <p style="font-size:18px;color:rgba(255,255,255,0.6);margin-bottom:32px;" id="win-desc">أحسنت! فزت باللعبة</p>
+      <button class="btn-primary" style="width:auto;padding:16px 40px;font-size:18px;" onclick="location.reload()">🔄 العب مرة أخرى</button>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    function confirmExit() {
+      if(confirm("هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.")) {
+        window.location.href = "../index.html";
+      }
+    }
+
+    const user = requireAuth();
+    if (user) {
+      document.getElementById('nav-avatar').textContent = user.avatar;
+      document.getElementById('nav-avatar').style.background = `linear-gradient(135deg, ${user.avatarColor}, #0a1500)`;
+      document.getElementById('nav-name').textContent = user.name;
+    }
+
+    const PROPERTIES = [
+      { name: 'البداية', icon: '🚀', type: 'go', price: 0, rent: 0, color: null },
+      { name: 'حي النور', icon: '🏠', type: 'property', price: 60, rent: 2, color: '#78350f' },
+      { name: 'صندوق', icon: '📦', type: 'chest', price: 0, rent: 0, color: null },
+      { name: 'حي الأمل', icon: '🏠', type: 'property', price: 60, rent: 4, color: '#78350f' },
+      { name: 'ضريبة', icon: '💸', type: 'tax', price: 200, rent: 0, color: null },
+      { name: 'مطار', icon: '✈️', type: 'station', price: 200, rent: 25, color: '#374151' },
+      { name: 'حي الوردة', icon: '🏡', type: 'property', price: 100, rent: 6, color: '#4d7c0f' },
+      { name: 'فرصة', icon: '⭐', type: 'chance', price: 0, rent: 0, color: null },
+      { name: 'حي الياسمين', icon: '🏡', type: 'property', price: 100, rent: 6, color: '#4d7c0f' },
+      { name: 'حي الريحان', icon: '🏡', type: 'property', price: 120, rent: 8, color: '#4d7c0f' },
+      { name: 'السجن', icon: '⛓', type: 'jail', price: 0, rent: 0, color: null },
+      { name: 'حي الفيحاء', icon: '🏘', type: 'property', price: 140, rent: 10, color: '#b45309' },
+      { name: 'شركة كهرباء', icon: '⚡', type: 'utility', price: 150, rent: 20, color: '#374151' },
+      { name: 'حي الزهراء', icon: '🏘', type: 'property', price: 140, rent: 10, color: '#b45309' },
+      { name: 'حي الروضة', icon: '🏘', type: 'property', price: 160, rent: 12, color: '#b45309' },
+      { name: 'ميناء', icon: '🚢', type: 'station', price: 200, rent: 25, color: '#374151' },
+      { name: 'شارع الملك', icon: '🏰', type: 'property', price: 180, rent: 14, color: '#dc2626' },
+      { name: 'صندوق', icon: '📦', type: 'chest', price: 0, rent: 0, color: null },
+      { name: 'شارع الأمراء', icon: '🏰', type: 'property', price: 180, rent: 14, color: '#dc2626' },
+      { name: 'شارع النخيل', icon: '🏰', type: 'property', price: 200, rent: 16, color: '#dc2626' },
+      { name: 'موقف', icon: '🅿️', type: 'parking', price: 0, rent: 0, color: null },
+      { name: 'حي الجوهرة', icon: '💎', type: 'property', price: 220, rent: 18, color: '#ea580c' },
+      { name: 'حي الياقوت', icon: '💎', type: 'property', price: 220, rent: 18, color: '#ea580c' },
+      { name: 'فرصة', icon: '⭐', type: 'chance', price: 0, rent: 0, color: null },
+      { name: 'حي الزمرد', icon: '💎', type: 'property', price: 240, rent: 20, color: '#ea580c' },
+      { name: 'محطة قطار', icon: '🚂', type: 'station', price: 200, rent: 25, color: '#374151' },
+      { name: 'برج الغروب', icon: '🗼', type: 'property', price: 260, rent: 22, color: '#2563eb' },
+      { name: 'برج الفجر', icon: '🗼', type: 'property', price: 260, rent: 22, color: '#2563eb' },
+      { name: 'شركة ماء', icon: '💧', type: 'utility', price: 150, rent: 20, color: '#374151' },
+      { name: 'برج الأفق', icon: '🗼', type: 'property', price: 280, rent: 24, color: '#2563eb' },
+      { name: 'اذهب للسجن', icon: '👮', type: 'gotojail', price: 0, rent: 0, color: null },
+      { name: 'قصر الريم', icon: '🏯', type: 'property', price: 300, rent: 26, color: '#059669' },
+      { name: 'فرصة', icon: '⭐', type: 'chance', price: 0, rent: 0, color: null },
+      { name: 'قصر الزهراء', icon: '🏯', type: 'property', price: 300, rent: 26, color: '#059669' },
+      { name: 'قصر الأمجاد', icon: '🏯', type: 'property', price: 320, rent: 28, color: '#059669' },
+      { name: 'مطار الملك', icon: '✈️', type: 'station', price: 200, rent: 25, color: '#374151' },
+      { name: 'برج الحرية', icon: '🌆', type: 'property', price: 350, rent: 35, color: '#7c3aed' },
+      { name: 'صندوق', icon: '📦', type: 'chest', price: 0, rent: 0, color: null },
+      { name: 'فيلا الذهب', icon: '🏛', type: 'property', price: 400, rent: 50, color: '#7c3aed' },
+      { name: 'ضريبة رفاهية', icon: '💸', type: 'tax', price: 100, rent: 0, color: null },
+    ];
+
+    const PLAYER_COLORS = ['#7c3aed','#ef4444','#10b981','#f59e0b'];
+    const PLAYER_EMOJIS = ['🎩','🚗','🐶','🚂'];
+    const BOT_NAMES_M = ['ريان','سارة','خالد','منى'];
+    const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+    let gameState = {
+      players: [],
+      currentPlayer: 0,
+      properties: [],
+      pendingBuy: null,
+      rolled: false,
+      log: []
+    };
+
+    function startGame() {
+      const bots = parseInt(document.getElementById('bot-count').value);
+      const money = parseInt(document.getElementById('start-money').value);
+
+      gameState.properties = PROPERTIES.map(p => ({ ...p, owner: null, buildings: 0 }));
+      gameState.players = [{ id: 0, name: user ? user.name : 'أنت', isBot: false, money, position: 0, avatar: PLAYER_EMOJIS[0], color: PLAYER_COLORS[0], bankrupt: false }];
+      for (let i = 1; i <= bots; i++) {
+        gameState.players.push({ id: i, name: BOT_NAMES_M[i-1], isBot: true, money, position: 0, avatar: PLAYER_EMOJIS[i], color: PLAYER_COLORS[i], bankrupt: false });
+      }
+      gameState.currentPlayer = 0;
+      gameState.rolled = false;
+
+      document.getElementById('setup-phase').style.display = 'none';
+      document.getElementById('game-phase').style.display = 'block';
+
+      addLog('🚀 بدأت اللعبة! لديك ' + money + ' 💰 ابدأ بالرمي!');
+      renderBoard(); renderPlayers(); updateTurnUI();
+    }
+
+    function renderBoard() {
+      const track = document.getElementById('property-track');
+      track.innerHTML = gameState.properties.map((p, i) => {
+        const playersHere = gameState.players.filter(pl => pl.position === i && !pl.bankrupt);
+        const ownerPlayer = p.owner !== null ? gameState.players[p.owner] : null;
+        const isCurrentPos = gameState.players[gameState.currentPlayer]?.position === i;
+        return `
+          <div class="property-cell ${isCurrentPos ? 'cell-current' : ''}" style="${ownerPlayer ? `border-bottom: 3px solid ${ownerPlayer.color}` : ''}">
+            ${p.color ? `<div class="cell-color" style="background:${p.color}"></div>` : ''}
+            <div class="cell-icon">${p.icon}</div>
+            <div class="cell-name">${p.name}</div>
+            ${p.price > 0 ? `<div class="cell-price">${p.price}💰</div>` : ''}
+            <div>${playersHere.map(pl => `<span class="cell-player-dot" style="background:${pl.color}" title="${pl.name}">${pl.avatar}</span>`).join('')}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderPlayers() {
+      const side = document.getElementById('players-side');
+      const current = gameState.players[gameState.currentPlayer];
+      side.innerHTML = gameState.players.map((p, i) => {
+        const ownedProps = gameState.properties.filter(pr => pr.owner === i && pr.type === 'property');
+        return `
+          <div class="player-panel ${current && current.id === p.id ? 'active' : ''}" style="${p.bankrupt ? 'opacity:0.45' : ''}">
+            <div class="pp-header">
+              <div class="pp-avatar" style="background:${p.color}">${p.avatar}</div>
+              <div>
+                <div class="pp-name">${p.name}${p.id===0?' (أنت)':''}</div>
+                <div class="pp-role">${p.bankrupt ? '💀 مفلس' : (current&&current.id===p.id ? '⭐ دوره الآن' : '⏳ ينتظر')}</div>
+              </div>
+            </div>
+            <div class="pp-money">💰 ${p.money.toLocaleString()}</div>
+            <div class="pp-properties">${ownedProps.slice(0,8).map(pr => `<div class="pp-prop" style="background:${pr.color||'#374151'}">${pr.icon}</div>`).join('')}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function updateTurnUI() {
+      const current = gameState.players[gameState.currentPlayer];
+      if (!current) return;
+      document.getElementById('current-turn-badge').textContent = `دور: ${current.name} ${current.avatar}`;
+      document.getElementById('action-label').textContent = current.isBot ? `⏳ ${current.name} يفكر...` : '🎲 رمِّ النرد!';
+      const rollBtn = document.getElementById('roll-btn');
+      rollBtn.disabled = current.isBot || gameState.rolled;
+      if (current.isBot && !current.bankrupt) setTimeout(botTurn, 1500);
+    }
+
+    function rollDice() {
+      if (gameState.rolled) return;
+      const current = gameState.players[gameState.currentPlayer];
+      if (!current || current.isBot || current.bankrupt) return;
+      doRoll(gameState.currentPlayer);
+    }
+
+    function doRoll(idx) {
+      const d1 = randomInt(1,6), d2 = randomInt(1,6);
+      document.getElementById('dice1').classList.add('rolling');
+      document.getElementById('dice2').classList.add('rolling');
+      setTimeout(() => {
+        document.getElementById('dice1').classList.remove('rolling');
+        document.getElementById('dice2').classList.remove('rolling');
+        document.getElementById('dice1').textContent = DICE_FACES[d1-1];
+        document.getElementById('dice2').textContent = DICE_FACES[d2-1];
+        movePlayer(idx, d1+d2);
+      }, 500);
+      gameState.rolled = true;
+      document.getElementById('roll-btn').disabled = true;
+    }
+
+    function botTurn() {
+      const current = gameState.players[gameState.currentPlayer];
+      if (!current || !current.isBot || current.bankrupt) return;
+      doRoll(gameState.currentPlayer);
+    }
+
+    function movePlayer(idx, steps) {
+      const player = gameState.players[idx];
+      const oldPos = player.position;
+      player.position = (player.position + steps) % 40;
+      if (player.position < oldPos) {
+        player.money += 200;
+        addLog(`🚀 ${player.name} مرّ بالبداية وأخذ 200💰`);
+        if (!player.isBot) showToast('+200💰 مررت بالبداية!', 'success');
+      }
+      addLog(`🎲 ${player.name} رمى ${steps} → ${gameState.properties[player.position].name}`);
+      renderBoard();
+      processLanding(idx);
+    }
+
+    function processLanding(idx) {
+      const player = gameState.players[idx];
+      const cell = gameState.properties[player.position];
+
+      if (cell.type === 'property' || cell.type === 'station' || cell.type === 'utility') {
+        if (cell.owner === null && player.money >= cell.price && cell.price > 0) {
+          if (!player.isBot) {
+            openBuyModal(cell, player.position, idx);
+            return; // wait for user decision
+          } else if (Math.random() > 0.3) {
+            buyProperty(player.position, idx);
+          }
+        } else if (cell.owner !== null && cell.owner !== idx) {
+          const rent = Math.min(cell.rent, player.money);
+          player.money -= rent;
+          gameState.players[cell.owner].money += rent;
+          addLog(`💸 ${player.name} دفع ${rent}💰 إيجار لـ${gameState.players[cell.owner].name}`, true);
+          if (!player.isBot) showToast(`💸 دفعت ${rent}💰 إيجار!`, 'error');
+          checkBankrupt(idx);
+        }
+      } else if (cell.type === 'tax') {
+        const tax = Math.min(cell.price, player.money);
+        player.money -= tax;
+        addLog(`💸 ${player.name} دفع ضريبة ${tax}💰`);
+        if (!player.isBot) showToast(`💸 ضريبة ${tax}💰`, 'error');
+      } else if (cell.type === 'gotojail') {
+        player.position = 10;
+        addLog(`👮 ${player.name} ذهب إلى السجن!`, true);
+        if (!player.isBot) showToast('👮 إلى السجن!', 'error');
+        renderBoard();
+      } else if (cell.type === 'chance' || cell.type === 'chest') {
+        const bonuses = [-50, 50, 100, 150, -100, 200, -75, 75];
+        const bonus = randomChoice(bonuses);
+        if (bonus > 0) { player.money += bonus; addLog(`⭐ ${player.name} حصل على ${bonus}💰!`); if (!player.isBot) showToast(`⭐ +${bonus}💰!`, 'success'); }
+        else { const loss = Math.min(-bonus, player.money); player.money -= loss; addLog(`📦 ${player.name} دفع ${loss}💰`); if (!player.isBot) showToast(`📦 -${loss}💰`, 'error'); }
+      }
+
+      renderPlayers();
+      if (player.isBot) setTimeout(endTurn, 800);
+    }
+
+    function openBuyModal(prop, pos, idx) {
+      gameState.pendingBuy = { pos, idx };
+      document.getElementById('buy-icon').textContent = prop.icon;
+      document.getElementById('buy-name').textContent = prop.name;
+      document.getElementById('buy-rent').textContent = `الإيجار: ${prop.rent} 💰`;
+      document.getElementById('buy-price').textContent = `${prop.price} 💰`;
+      document.getElementById('buy-modal').classList.remove('hidden');
+    }
+
+    function confirmBuy() {
+      if (!gameState.pendingBuy) return;
+      buyProperty(gameState.pendingBuy.pos, gameState.pendingBuy.idx);
+      gameState.pendingBuy = null;
+      document.getElementById('buy-modal').classList.add('hidden');
+      endTurn();
+    }
+
+    function declineBuy() {
+      gameState.pendingBuy = null;
+      document.getElementById('buy-modal').classList.add('hidden');
+      endTurn();
+    }
+
+    function buyProperty(pos, idx) {
+      const player = gameState.players[idx];
+      const prop = gameState.properties[pos];
+      player.money -= prop.price;
+      prop.owner = idx;
+      addLog(`🏠 ${player.name} اشترى ${prop.name} بـ${prop.price}💰`, true);
+      if (!player.isBot) showToast(`✅ اشتريت ${prop.name}!`, 'success');
+      renderBoard(); renderPlayers();
+    }
+
+    function checkBankrupt(idx) {
+      const player = gameState.players[idx];
+      if (player.money <= 0) {
+        player.money = 0; player.bankrupt = true;
+        gameState.properties.forEach(p => { if (p.owner === idx) p.owner = null; });
+        addLog(`💀 ${player.name} أفلس!`, true);
+        showToast(`💀 ${player.name} أفلس!`, 'error');
+        const active = gameState.players.filter(p => !p.bankrupt);
+        if (active.length === 1) { showWin(active[0]); }
+      }
+    }
+
+    function endTurn() {
+      gameState.rolled = false;
+      let next = (gameState.currentPlayer + 1) % gameState.players.length;
+      let tries = 0;
+      while (gameState.players[next].bankrupt && tries < gameState.players.length) { next = (next+1) % gameState.players.length; tries++; }
+      gameState.currentPlayer = next;
+      renderBoard(); renderPlayers(); updateTurnUI();
+    }
+
+    function showWin(winner) {
+      document.getElementById('win-title').textContent = winner.id===0 ? '🏆 أنت الأغنى!' : `🏆 ${winner.name} فاز!`;
+      document.getElementById('win-desc').textContent = `الثروة النهائية: ${winner.money.toLocaleString()} 💰`;
+      document.getElementById('win-screen').style.display = 'flex';
+    }
+
+    function addLog(msg, important=false) {
+      gameState.log.unshift({ msg, important });
+      const el = document.getElementById('game-log');
+      if (el) el.innerHTML = gameState.log.slice(0,20).map(e => `<div class="log-entry ${e.important?'highlight':''}">${e.msg}</div>`).join('');
+    }
+  </script>
+</body>
+</html>

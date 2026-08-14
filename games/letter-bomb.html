@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#be123c" />
+  <title>قنبلة الحروف — رفيق</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #f43f5e; --primary-dark: #be123c;
+      --accent: #f59e0b; --accent-dark: #b45309;
+      --danger: #ef4444; --danger-dark: #b91c1c;
+      --success: #10b981; --success-dark: #047857;
+      --bg: #111827; 
+    }
+    
+    body {
+      background: var(--bg);
+      background-image: radial-gradient(circle at top left, #374151 0%, transparent 70%);
+      min-height: 100vh; font-family: 'Tajawal', sans-serif;
+      color: white; margin: 0; display: flex; flex-direction: column;
+      user-select: none; -webkit-font-smoothing: antialiased;
+    }
+
+    .btn-3d {
+      background: var(--primary); color: white; border: none; border-radius: 16px;
+      padding: 16px; font-size: 20px; font-weight: 900; font-family: 'Tajawal', sans-serif;
+      box-shadow: 0 6px 0 var(--primary-dark), 0 10px 15px rgba(0,0,0,0.3);
+      cursor: pointer; transition: all 0.1s; text-align: center; display: inline-block;
+    }
+    .btn-3d:active { transform: translateY(6px); box-shadow: 0 0px 0 var(--primary-dark), 0 2px 5px rgba(0,0,0,0.3); }
+    .btn-3d.danger { background: var(--danger); box-shadow: 0 6px 0 var(--danger-dark), 0 10px 15px rgba(0,0,0,0.3); }
+    .btn-3d.danger:active { box-shadow: 0 0px 0 var(--danger-dark); }
+    .btn-3d.success { background: var(--success); box-shadow: 0 6px 0 var(--success-dark), 0 10px 15px rgba(0,0,0,0.3); }
+    .btn-3d.success:active { box-shadow: 0 0px 0 var(--success-dark); }
+    .btn-3d.accent { background: var(--accent); box-shadow: 0 6px 0 var(--accent-dark), 0 10px 15px rgba(0,0,0,0.3); }
+    .btn-3d.accent:active { box-shadow: 0 0px 0 var(--accent-dark); }
+
+    .top-bar { padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; }
+    .btn-back { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 24px; border-radius: 50px; font-weight: 800; box-shadow: 0 4px 0 rgba(0,0,0,0.3); transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
+    .btn-back:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.4); }
+    .btn-back:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0.3); }
+    
+    .btn-eliminated { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); color: white; border-radius: 50px; padding: 10px 16px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+    .btn-eliminated:active { transform: scale(0.95); }
+
+    .main-container { flex: 1; display: flex; flex-direction: column; padding: 80px 20px 20px; max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .screen { display: none; flex-direction: column; flex: 1; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .screen.active { display: flex; }
+    @keyframes popIn { from { opacity:0; transform: scale(0.9); } to { opacity:1; transform: scale(1); } }
+
+    .title { font-size: 36px; font-weight: 900; text-align: center; margin-bottom: 24px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); line-height: 1.2; }
+
+    .card-3d { background: #1f2937; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 8px 0 #111827, inset 0 2px 0 rgba(255,255,255,0.05); }
+    .card-title { font-size: 20px; font-weight: 900; margin-bottom: 16px; color: #fca5a5; }
+
+    .stepper { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 12px; margin-bottom: 12px; }
+    .step-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; font-size: 24px; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; }
+    .step-btn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0); }
+    .step-val { font-size: 32px; font-weight: 900; text-align: center; width: 60px; }
+
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-height: 250px; overflow-y: auto; padding: 10px; margin: -10px; }
+    .cat-grid::-webkit-scrollbar { width: 0; }
+    .cat-btn { background: #374151; border: 2px solid transparent; border-radius: 16px; padding: 16px 8px; text-align: center; cursor: pointer; opacity: 0.5; filter: grayscale(1); transition: 0.2s; color: white; display:flex; flex-direction:column; align-items:center; position: relative; }
+    .cat-btn.selected { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-color: #fda4af; opacity: 1; filter: grayscale(0); transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+    .cat-btn::after { content: '❌'; position: absolute; top: -10px; right: -10px; background: #1f2937; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: 0.2s; }
+    .cat-btn.selected::after { content: '✅'; background: var(--success); color: white; border: 2px solid white; }
+    .cat-btn:active { transform: translateY(0) !important; }
+    .cat-icon { font-size: 42px; margin-bottom: 8px; filter: drop-shadow(0 6px 4px rgba(0,0,0,0.4)); }
+    .cat-text { font-size: 15px; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .names-list { display: flex; flex-direction: column; gap: 16px; max-height: 50vh; overflow-y: auto; padding: 10px 0; }
+    .name-input { background: rgba(0,0,0,0.3); border: none; border-radius: 16px; padding: 18px 24px; color: white; font-size: 20px; font-weight: 800; font-family: 'Tajawal', sans-serif; width: 100%; box-sizing: border-box; box-shadow: inset 0 4px 8px rgba(0,0,0,0.3); outline: none; transition: 0.2s;}
+    .name-input:focus { background: rgba(0,0,0,0.5); box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), 0 0 0 2px var(--primary); }
+
+    /* Game Screen */
+    .bomb-container { position: relative; margin: 40px auto; width: 260px; height: 260px; display: flex; align-items: center; justify-content: center; }
+    .bomb-circle { position: absolute; inset: 0; border-radius: 50%; border: 12px solid rgba(255,255,255,0.1); border-top-color: var(--primary); transition: stroke-dashoffset 0.1s linear; }
+    .bomb-bg { background: radial-gradient(circle, #374151, #111827); width: 100%; height: 100%; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 40px rgba(0,0,0,0.5); z-index: 2; position: relative; }
+    .timer-text { font-size: 72px; font-weight: 900; font-family: monospace; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.8); line-height: 1; }
+    .timer-ms { font-size: 24px; opacity: 0.7; }
+    
+    .bomb-pulsating { animation: pulseDanger 0.5s infinite alternate; }
+    @keyframes pulseDanger { from { transform: scale(1); box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 40px rgba(0,0,0,0.5); } to { transform: scale(1.05); box-shadow: inset 0 0 60px rgba(220,38,38,0.8), 0 20px 60px rgba(220,38,38,0.6); } }
+
+    .bomb-shake { animation: shake 0.1s infinite; }
+    @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 25% { transform: translate(-1px, -2px) rotate(-1deg); } 50% { transform: translate(-3px, 0px) rotate(1deg); } 75% { transform: translate(3px, 2px) rotate(0deg); } 100% { transform: translate(1px, -1px) rotate(1deg); } }
+
+    .question-box { background: rgba(0,0,0,0.4); border-radius: 20px; padding: 24px; text-align: center; margin-bottom: 24px; border: 2px solid rgba(255,255,255,0.1); }
+    .q-category { font-size: 24px; color: var(--accent); font-weight: 900; margin-bottom: 10px; }
+    .q-letter { font-size: 48px; font-weight: 900; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    .current-player-tag { background: var(--primary); padding: 8px 20px; border-radius: 50px; font-size: 20px; font-weight: 900; display: inline-block; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+    .action-row { display: flex; gap: 16px; margin-top: auto; }
+    .action-row button { flex: 1; }
+
+    .level-badge { background: rgba(255,255,255,0.1); padding: 6px 16px; border-radius: 50px; font-size: 14px; font-weight: 800; text-align: center; margin-bottom: 10px; }
+
+    /* Modals */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal.active { display: flex; }
+    .modal-content { background: #1f2937; border-radius: 24px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: popIn 0.3s; }
+    
+    .eliminated-list { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; margin: 20px 0; }
+    .eliminated-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; }
+    
+    /* Tutorial */
+    .tut-icon { font-size: 60px; margin-bottom: 20px; display: inline-block; animation: bounce 2s infinite alternate; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    .tut-list { text-align: right; margin: 20px 0; font-size: 18px; line-height: 1.6; opacity: 0.9; }
+    .tut-list li { margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; list-style: none; display: flex; gap: 10px; align-items: flex-start; }
+
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+    <button class="btn-eliminated" onclick="showEliminatedModal()" id="eliminated-btn" style="display: none;">المقصيين (0)</button>
+  </div>
+
+  <div class="main-container">
+    
+    <!-- TUTORIAL SCREEN -->
+    <div id="screen-tutorial" class="screen active">
+      <div style="text-align:center;">
+        <div class="tut-icon">💣</div>
+        <h1 class="title" style="margin-bottom: 10px;">كيف تلعب قنبلة الحروف؟</h1>
+        <p style="opacity:0.7; font-size:18px;">لعبة سرعة بديهة، انفجر أو جاوب!</p>
+      </div>
+      <ul class="tut-list">
+        <li><span>🎯</span> <strong>الفكرة:</strong> بيطلع لك تصنيف (مثلاً بلاد) وحرف (مثلاً ب).</li>
+        <li><span>⏱️</span> <strong>الوقت:</strong> لازم تجاوب بصوت عالي قبل ما تخلص الثواني وتنفجر القنبلة!</li>
+        <li><span>📈</span> <strong>الصعوبة:</strong> كل جولة بتقل الثواني (المستوى الأول 30 ثانية، والمستوى الأخير 5 ثواني بس!).</li>
+        <li><span>☠️</span> <strong>الإقصاء:</strong> إذا خلص الوقت أو ضغطت إقصاء، تطلع من اللعبة، بس يقدر مدير الجلسة يرجعك.</li>
+      </ul>
+      <button class="btn-3d success" style="margin-top:auto;" onclick="showScreen('setup')">فهمت، ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- SETUP SCREEN -->
+    <div id="screen-setup" class="screen">
+      <h1 class="title">إعدادات الجلسة ⚙️</h1>
+      
+      <div class="card-3d">
+        <div class="card-title">👥 عدد اللاعبين</div>
+        <div class="stepper">
+          <button class="step-btn" onclick="adjPlayers(-1)">-</button>
+          <div><div class="step-val" id="val-players">4</div></div>
+          <button class="step-btn" onclick="adjPlayers(1)">+</button>
+        </div>
+      </div>
+
+      <div class="card-3d">
+        <div class="card-title">🎲 الفئات (ممكن تختار أكثر من وحدة)</div>
+        <div class="cat-grid" id="cat-grid">
+          <button class="cat-btn selected" data-cat="حيوان" onclick="toggleCat(this)"><div class="cat-icon">🦁</div><div class="cat-text">حيوان</div></button>
+          <button class="cat-btn selected" data-cat="نبات" onclick="toggleCat(this)"><div class="cat-icon">🌲</div><div class="cat-text">نبات</div></button>
+          <button class="cat-btn selected" data-cat="جماد" onclick="toggleCat(this)"><div class="cat-icon">🪑</div><div class="cat-text">جماد</div></button>
+          <button class="cat-btn selected" data-cat="بلاد" onclick="toggleCat(this)"><div class="cat-icon">🌍</div><div class="cat-text">بلاد / مدينة</div></button>
+          <button class="cat-btn selected" data-cat="اسم" onclick="toggleCat(this)"><div class="cat-icon">👤</div><div class="cat-text">اسم</div></button>
+        </div>
+        <p id="cat-error" style="color:var(--danger); text-align:center; display:none; margin-top:10px; font-weight:bold;">لازم تختار فئة وحدة على الأقل!</p>
+      </div>
+
+      <button class="btn-3d" style="margin-top:auto;" onclick="goToNames()">التالي ➡</button>
+    </div>
+
+    <!-- NAMES SCREEN -->
+    <div id="screen-names" class="screen">
+      <h1 class="title">مين بيلعب؟ ✍️</h1>
+      <div class="names-list" id="names-list"></div>
+      <button class="btn-3d" style="margin-top:auto;" onclick="startGame()">ابدأ الجولة الأولى 💣</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" class="screen">
+      <div class="level-badge" id="level-badge">مستوى الصعوبة 1 (30 ثانية)</div>
+      
+      <div style="text-align:center;">
+        <div class="current-player-tag" id="current-player-display">دور: أحمد</div>
+      </div>
+
+      <div class="question-box">
+        <div class="q-category" id="q-category">أعطني (حيوان)</div>
+        <div style="font-size:20px; opacity:0.8; margin-top:10px;">يبدأ بحرف</div>
+        <div class="q-letter" id="q-letter">س</div>
+      </div>
+
+      <div class="bomb-container" id="bomb-container">
+        <svg class="bomb-circle" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="276" stroke-dashoffset="0" id="timer-ring"></circle>
+        </svg>
+        <div class="bomb-bg" id="bomb-bg">
+          <div class="timer-text" id="timer-display">30</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-3d danger" onclick="eliminateCurrentPlayer()">إقصاء ☠️</button>
+        <button class="btn-3d success" onclick="correctAnswer()">جاوب ✅</button>
+      </div>
+    </div>
+    
+    <!-- LEVEL UP / GAME OVER SCREEN -->
+    <div id="screen-result" class="screen">
+      <div style="text-align:center; margin-top: 40px;">
+        <div style="font-size: 80px; margin-bottom:10px;" id="res-icon">🏆</div>
+        <h1 class="title" style="font-size: 40px; margin-bottom:10px;" id="res-title">نهاية المستوى!</h1>
+        <p style="font-size: 20px; opacity:0.8; margin-bottom:30px;" id="res-desc">استعد للمستوى القادم...</p>
+      </div>
+      <button class="btn-3d" style="margin-top:auto;" id="res-btn" onclick="nextLevel()">التالي</button>
+    </div>
+
+  </div>
+
+  <!-- Eliminated Modal -->
+  <div class="modal" id="eliminated-modal">
+    <div class="modal-content">
+      <h2 style="font-size:24px; font-weight:900; margin-bottom:10px; color:var(--danger); text-align:center;">اللاعبين المقصيين</h2>
+      <p style="text-align:center; opacity:0.7;">تقدر ترجع أي لاعب للعبة من هنا</p>
+      <div class="eliminated-list" id="eliminated-list">
+        <!-- Players go here -->
+      </div>
+      <button class="btn-3d" style="width:100%; margin-top:10px;" onclick="document.getElementById('eliminated-modal').classList.remove('active')">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- Explosion Modal -->
+  <div class="modal" id="explosion-modal">
+    <div class="modal-content" style="background:var(--danger-dark); text-align:center;">
+      <div style="font-size:100px; animation: bounce 0.5s infinite alternate;">💥</div>
+      <h2 style="font-size:36px; font-weight:900; margin:10px 0; color:white;">انفجرت القنبلة!</h2>
+      <p style="font-size:20px; color:rgba(255,255,255,0.8);" id="explosion-text">تم إقصاء أحمد</p>
+      <button class="btn-3d" style="width:100%; background:white; color:var(--danger-dark); margin-top:20px;" onclick="closeExplosion()">التالي</button>
+    </div>
+  </div>
+
+  <script>
+    // Confirmation before exit
+    function confirmExit() {
+      if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
+        window.location.href = '../index.html';
+      }
+    }
+
+    const LETTERS = ['أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','هـ','و','ي'];
+    
+    // Audio Context Setup
+    let audioCtx;
+    function initAudio() {
+      if(!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    
+    function playHeartbeat() {
+      if(!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(50, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.1);
+      filter.type = 'lowpass';
+      filter.frequency.value = 100;
+      gain.gain.setValueAtTime(0, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    }
+    
+    function playExplosion() {
+      if(!audioCtx) return;
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 1.5);
+      gain.gain.setValueAtTime(1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+      noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+      noise.start();
+    }
+
+    // Level settings: time in seconds
+    const LEVELS = [
+      { num: 1, time: 30, name: "سهل" },
+      { num: 2, time: 20, name: "متوسط" },
+      { num: 3, time: 15, name: "صعب" },
+      { num: 4, time: 10, name: "نار" },
+      { num: 5, time: 5, name: "مستحيل!" }
+    ];
+
+    let state = {
+      playersCount: 4,
+      playerNames: [],
+      eliminatedIndices: [],
+      selectedCats: ['حيوان', 'نبات', 'جماد', 'بلاد', 'اسم'],
+      
+      currentLevelIdx: 0,
+      turnInLevel: 0, // how many players played in this level
+      activePlayersInLevel: [], // indices of players who started this level
+      
+      currentPlayerIdx: -1,
+      
+      timer: null,
+      timeLeftMs: 0,
+      maxTimeMs: 0,
+      lastTickTime: 0,
+      lastHeartbeatSec: -1
+    };
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-'+id).classList.add('active');
+    }
+
+    function adjPlayers(d) {
+      state.playersCount = Math.max(2, Math.min(10, state.playersCount + d));
+      document.getElementById('val-players').textContent = state.playersCount;
+    }
+
+    function toggleCat(btn) {
+      const cat = btn.getAttribute('data-cat');
+      if(btn.classList.contains('selected')) {
+        btn.classList.remove('selected');
+        state.selectedCats = state.selectedCats.filter(c => c !== cat);
+      } else {
+        btn.classList.add('selected');
+        state.selectedCats.push(cat);
+      }
+    }
+
+    function goToNames() {
+      if(state.selectedCats.length === 0) {
+        document.getElementById('cat-error').style.display = 'block';
+        return;
+      }
+      document.getElementById('cat-error').style.display = 'none';
+      
+      const list = document.getElementById('names-list');
+      list.innerHTML = '';
+      for(let i=0; i<state.playersCount; i++) {
+        list.innerHTML += `<input type="text" class="name-input" id="name-${i}" placeholder="اللاعب ${i+1}" />`;
+      }
+      showScreen('names');
+    }
+
+    function startGame() {
+      initAudio();
+      state.playerNames = [];
+      for(let i=0; i<state.playersCount; i++) {
+        state.playerNames.push(document.getElementById(`name-${i}`).value.trim() || `اللاعب ${i+1}`);
+      }
+      
+      state.eliminatedIndices = [];
+      state.currentLevelIdx = 0;
+      updateEliminatedBtn();
+      document.getElementById('eliminated-btn').style.display = 'inline-block';
+      
+      startLevel();
+    }
+
+    function getActivePlayers() {
+      let active = [];
+      for(let i=0; i<state.playersCount; i++) {
+        if(!state.eliminatedIndices.includes(i)) active.push(i);
+      }
+      return active;
+    }
+
+    function startLevel() {
+      state.activePlayersInLevel = getActivePlayers();
+      if(state.activePlayersInLevel.length === 0) {
+        endGame("الكل خسر!");
+        return;
+      }
+      if(state.activePlayersInLevel.length === 1 && state.playersCount > 1) {
+        endGame(`فاز ${state.playerNames[state.activePlayersInLevel[0]]} 🏆`);
+        return;
+      }
+      
+      state.turnInLevel = 0;
+      
+      // Shuffle active players for this round
+      state.activePlayersInLevel.sort(() => Math.random() - 0.5);
+      
+      startTurn();
+    }
+
+    function startTurn() {
+      if (getActivePlayers().length <= 1 && state.playersCount > 1) {
+        startLevel(); // Will trigger win logic
+        return;
+      }
+
+      // Check if level is over
+      if(state.turnInLevel >= state.activePlayersInLevel.length) {
+        showLevelResult();
+        return;
+      }
+      
+      let pIdx = state.activePlayersInLevel[state.turnInLevel];
+      
+      // if this player was eliminated during this level by some manual action, skip
+      if (state.eliminatedIndices.includes(pIdx)) {
+        state.turnInLevel++;
+        startTurn();
+        return;
+      }
+
+      state.currentPlayerIdx = pIdx;
+      
+      const level = LEVELS[state.currentLevelIdx];
+      document.getElementById('level-badge').textContent = `مستوى ${level.num}: ${level.name} (${level.time} ث)`;
+      document.getElementById('current-player-display').textContent = `دور: ${state.playerNames[pIdx]}`;
+      
+      // Pick random cat and letter (avoid immediate repetition)
+      let cat = state.selectedCats[Math.floor(Math.random() * state.selectedCats.length)];
+      if (state.selectedCats.length > 1) {
+        while(cat === state.lastCat) {
+          cat = state.selectedCats[Math.floor(Math.random() * state.selectedCats.length)];
+        }
+      }
+      state.lastCat = cat;
+
+      let letter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      while(letter === state.lastLetter) {
+        letter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      }
+      state.lastLetter = letter;
+      
+      document.getElementById('q-category').textContent = `أعطني (${cat})`;
+      document.getElementById('q-letter').textContent = letter;
+      
+      // Setup Timer
+      state.maxTimeMs = level.time * 1000;
+      state.timeLeftMs = state.maxTimeMs;
+      state.lastTickTime = Date.now();
+      state.lastHeartbeatSec = -1;
+      
+      document.getElementById('bomb-bg').classList.remove('bomb-pulsating');
+      document.getElementById('bomb-container').classList.remove('bomb-shake');
+      
+      updateTimerUI();
+      showScreen('game');
+      
+      if(state.timer) cancelAnimationFrame(state.timer);
+      tick();
+    }
+
+    function tick() {
+      const now = Date.now();
+      const dt = now - state.lastTickTime;
+      state.lastTickTime = now;
+      state.timeLeftMs -= dt;
+      
+      if(state.timeLeftMs <= 0) {
+        state.timeLeftMs = 0;
+        updateTimerUI();
+        explode();
+        return;
+      }
+      
+      updateTimerUI();
+      
+      // Effects based on time left
+      const ratio = state.timeLeftMs / state.maxTimeMs;
+      const bg = document.getElementById('bomb-bg');
+      const container = document.getElementById('bomb-container');
+      
+      const secLeft = Math.ceil(state.timeLeftMs / 1000);
+      if (secLeft <= 10 && secLeft !== state.lastHeartbeatSec) {
+        state.lastHeartbeatSec = secLeft;
+        playHeartbeat();
+      }
+      
+      if (ratio < 0.3) {
+        if(!bg.classList.contains('bomb-pulsating')) bg.classList.add('bomb-pulsating');
+        if(!container.classList.contains('bomb-shake')) container.classList.add('bomb-shake');
+      }
+      
+      state.timer = requestAnimationFrame(tick);
+    }
+
+    function updateTimerUI() {
+      const sec = Math.ceil(state.timeLeftMs / 1000);
+      document.getElementById('timer-display').textContent = sec;
+      
+      // Ring logic (dasharray = 276 for r=44)
+      const ratio = state.timeLeftMs / state.maxTimeMs;
+      const offset = 276 - (ratio * 276);
+      document.getElementById('timer-ring').style.strokeDashoffset = offset;
+      
+      if (ratio < 0.3) {
+        document.getElementById('timer-ring').style.color = 'var(--danger)';
+      } else if (ratio < 0.6) {
+        document.getElementById('timer-ring').style.color = 'var(--accent)';
+      } else {
+        document.getElementById('timer-ring').style.color = 'var(--success)';
+      }
+    }
+
+    function stopTimer() {
+      if(state.timer) cancelAnimationFrame(state.timer);
+    }
+
+    function correctAnswer() {
+      stopTimer();
+      state.turnInLevel++;
+      startTurn();
+    }
+
+    function eliminateCurrentPlayer() {
+      stopTimer();
+      doEliminate(state.currentPlayerIdx);
+      state.turnInLevel++;
+      startTurn();
+    }
+
+    function explode() {
+      stopTimer();
+      playExplosion();
+      const pName = state.playerNames[state.currentPlayerIdx];
+      doEliminate(state.currentPlayerIdx);
+      
+      document.getElementById('explosion-text').textContent = `انتهى الوقت وتم إقصاء ${pName}`;
+      document.getElementById('explosion-modal').classList.add('active');
+    }
+
+    function closeExplosion() {
+      document.getElementById('explosion-modal').classList.remove('active');
+      state.turnInLevel++;
+      startTurn();
+    }
+
+    function doEliminate(idx) {
+      if(!state.eliminatedIndices.includes(idx)) {
+        state.eliminatedIndices.push(idx);
+        updateEliminatedBtn();
+      }
+    }
+
+    function doRevive(idx) {
+      state.eliminatedIndices = state.eliminatedIndices.filter(i => i !== idx);
+      updateEliminatedBtn();
+      showEliminatedModal(); // refresh
+    }
+
+    function updateEliminatedBtn() {
+      document.getElementById('eliminated-btn').textContent = `المقصيين (${state.eliminatedIndices.length})`;
+    }
+
+    function showEliminatedModal() {
+      const list = document.getElementById('eliminated-list');
+      list.innerHTML = '';
+      
+      if(state.eliminatedIndices.length === 0) {
+        list.innerHTML = '<p style="text-align:center; opacity:0.5; padding: 20px;">لا يوجد مقصيين حالياً</p>';
+      } else {
+        state.eliminatedIndices.forEach(idx => {
+          list.innerHTML += `
+            <div class="eliminated-item">
+              <span style="font-weight:bold;">${state.playerNames[idx]}</span>
+              <button class="btn-eliminated" style="padding: 6px 12px; background:var(--success); border-color:var(--success-dark);" onclick="doRevive(${idx})">إحياء 💖</button>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('eliminated-modal').classList.add('active');
+    }
+
+    function showLevelResult() {
+      let active = getActivePlayers();
+      if(active.length <= 1 && state.playersCount > 1) {
+        startLevel(); // will trigger win/lose logic
+        return;
+      }
+      
+      state.currentLevelIdx++;
+      if (state.currentLevelIdx >= LEVELS.length) {
+         state.currentLevelIdx = LEVELS.length - 1; // Stay on the hardest level
+      }
+      
+      document.getElementById('res-icon').textContent = '🔥';
+      document.getElementById('res-title').textContent = 'نهاية الجولة!';
+      document.getElementById('res-title').style.color = 'white';
+      
+      const nextLvl = LEVELS[state.currentLevelIdx];
+      document.getElementById('res-desc').textContent = `استعد للمستوى ${nextLvl.num} (${nextLvl.name}). الجولة بتظل مستمرة لين يبقى لاعب واحد!`;
+      document.getElementById('res-btn').textContent = "ابدأ الجولة الجاية";
+      document.getElementById('res-btn').onclick = startLevel;
+      
+      showScreen('result');
+    }
+
+    function endGame(msg) {
+      document.getElementById('res-icon').textContent = '🎉';
+      document.getElementById('res-title').textContent = msg;
+      document.getElementById('res-title').style.color = 'var(--accent)';
+      document.getElementById('res-desc').textContent = "انتهت اللعبة!";
+      document.getElementById('res-btn').textContent = "العب من جديد";
+      document.getElementById('res-btn').onclick = () => location.reload();
+      showScreen('result');
+    }
+
+  </script>
+</body>
+</html>

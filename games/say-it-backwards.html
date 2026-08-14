@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>احكيها بالعكس - التلفون الخربان</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --primary: #4f46e5;
+      --secondary: #ec4899;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --card-bg: rgba(30, 41, 59, 0.7);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .home-btn {
+      position: absolute; top: 20px; right: 20px; z-index: 100;
+      background: rgba(255,255,255,0.1); padding: 10px 20px;
+      border-radius: 20px; text-decoration: none; color: white;
+      font-weight: bold; border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .game-container {
+      flex: 1; display: flex; flex-direction: column;
+      padding: 80px 20px 20px; max-width: 600px; margin: 0 auto; width: 100%;
+    }
+
+    .screen {
+      display: none; flex-direction: column; flex: 1;
+      animation: fadeIn 0.4s ease; text-align: center;
+    }
+    .screen.active { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .title { font-size: 32px; font-weight: 900; margin-bottom: 20px; color: var(--accent); }
+    
+    .step-card {
+      background: var(--card-bg); border-radius: 24px; padding: 30px;
+      margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .input-group { margin-bottom: 15px; text-align: right; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #cbd5e1; }
+    .input-field {
+      width: 100%; padding: 15px; border-radius: 12px;
+      background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1);
+      color: white; font-family: 'Tajawal', sans-serif; font-size: 16px;
+      transition: all 0.3s;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.4); }
+
+    .btn-3d {
+      width: 100%; padding: 18px; border-radius: 20px;
+      background: var(--primary); color: white; border: none;
+      font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 900;
+      box-shadow: 0 6px 0 #3730a3; cursor: pointer;
+      transition: all 0.1s; margin-bottom: 15px;
+    }
+    .btn-3d:active { transform: translateY(6px); box-shadow: 0 0px 0 #3730a3; }
+    .btn-3d.success { background: var(--success); box-shadow: 0 6px 0 #059669; }
+    .btn-3d.success:active { box-shadow: 0 0px 0 #059669; }
+    .btn-3d.danger { background: var(--danger); box-shadow: 0 6px 0 #b91c1c; }
+    .btn-3d.danger:active { box-shadow: 0 0px 0 #b91c1c; }
+    .btn-3d:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: 0 6px 0 rgba(0,0,0,0.5) !important; }
+
+    /* Recording UI */
+    .record-btn-container {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      margin: 40px 0;
+    }
+    .mic-btn {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 4px solid #334155; display: flex; align-items: center; justify-content: center;
+      font-size: 50px; cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mic-btn.recording {
+      border-color: var(--danger);
+      background: linear-gradient(135deg, #ef4444, #991b1b);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 30px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .timer-bar-bg { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; margin-top: 20px; overflow: hidden; }
+    .timer-bar-fill { height: 100%; width: 0%; background: var(--danger); transition: width 0.1s linear; }
+    .status-text { margin-top: 15px; font-size: 18px; font-weight: bold; }
+
+    /* Visualizer */
+    .audio-visualizer {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      height: 60px; margin: 20px 0;
+    }
+    .bar { width: 8px; height: 10px; background: var(--accent); border-radius: 4px; transition: height 0.1s; }
+
+    /* Results Timeline */
+    .timeline { text-align: right; margin-top: 20px; }
+    .timeline-item { 
+      background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 15px; margin-bottom: 15px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .timeline-info h4 { color: var(--accent); margin-bottom: 5px; }
+    .timeline-info p { font-size: 14px; opacity: 0.8; }
+    .play-btn { 
+      background: var(--primary); width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: none; color: white; font-size: 18px; cursor: pointer;
+    }
+    
+    .match-score { font-size: 60px; font-weight: 900; color: var(--success); margin: 20px 0; text-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); }
+  </style>
+</head>
+<body>
+  <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+
+  <div class="game-container">
+    
+    <!-- PHASE: TUTORIAL -->
+    <div id="screen-tutorial" class="screen active">
+      <h1 class="title">احكيها بالعكس 🤪</h1>
+      <div class="step-card">
+        <h3 style="color:var(--accent); margin-bottom:15px; font-size:24px;">كيف نلعب؟</h3>
+        <p style="font-size:16px; margin-bottom:10px; line-height:1.6; text-align:right;">
+          1️⃣ <strong>اللاعب الأول:</strong> يسجل جملة بصوته.<br>
+          2️⃣ <strong>باقي اللاعبين:</strong> يستلمون الجوال بالدور، ويسمعون تسجيل اللاعب السابق <strong>بالمقلوب</strong>، ولازم يقلدون الأصوات الغريبة اللي سمعوها!<br>
+          3️⃣ <strong>اللاعب الأخير:</strong> يسمع آخر تسجيل (واللي مفروض يكون نفس الجملة الأصلية بس بلكنة فضائية 😂) ويحاول يخمن إيش هي الجملة.<br>
+          <br>
+          <em>ملاحظة: اللعبة تحتاج تركيز لأن وقت التسجيل محدود بـ 15 ثانية فقط!</em>
+        </p>
+      </div>
+      <button class="btn-3d success" style="margin-top:auto;" onclick="showScreen('setup')">فهمت، ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- PHASE: SETUP -->
+    <div id="screen-setup" class="screen">
+      <h1 class="title">إعداد اللعبة ⚙️</h1>
+      <div class="step-card">
+        <div class="input-group">
+          <label>عدد اللاعبين (3 - 10)</label>
+          <input type="number" id="players-count" class="input-field" value="3" min="3" max="10" onchange="renderPlayerInputs()">
+        </div>
+        <div id="players-names-container">
+          <!-- Dynamic inputs -->
+        </div>
+      </div>
+      <button class="btn-3d success" onclick="startGame()">ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- PHASE: PASS PHONE -->
+    <div id="screen-pass" class="screen">
+      <h1 class="title">تبديل الأدوار 📱</h1>
+      <div class="step-card">
+        <h2 style="font-size: 40px; color: var(--accent); margin-bottom: 20px;" id="pass-player-name">الاسم</h2>
+        <p style="font-size: 18px; opacity: 0.8;">أعطِ الجوال لهذا اللاعب، ولا تخلي أحد يسمع!</p>
+      </div>
+      <button class="btn-3d" style="margin-top:auto;" onclick="startPlayerTurn()">استلمت الجوال، جاهز!</button>
+    </div>
+
+    <!-- PHASE: PLAYER 1 (Secret Phrase) -->
+    <div id="screen-p1" class="screen">
+      <h1 class="title">اللاعب 1: <span id="p1-name"></span></h1>
+      <div class="step-card">
+        <p style="font-size: 16px; margin-bottom:10px; color:#cbd5e1;">اكتب جملة أو استخدم الجملة العشوائية، ثم سجلها بصوت واضح.</p>
+        <p style="font-size: 14px; margin-bottom:15px; color:var(--danger); font-weight:bold;">يجب أن يكون النص المكتوب مطابقاً لتسجيلك الصوتي بالظبط!</p>
+        <textarea id="p1-text" class="input-field" rows="3">ذهب الطالب إلى المدرسة مبكراً</textarea>
+        <button onclick="randomizePhrase()" style="background:transparent; color:var(--accent); border:none; margin-top:10px; cursor:pointer; font-family:'Tajawal'; font-weight:bold;">🎲 تغيير الجملة</button>
+      </div>
+      
+      <div class="record-btn-container">
+        <div class="mic-btn" id="mic-btn-1">🎙️</div>
+        <div class="status-text" id="status-1">اضغط مطولاً للتسجيل (15 ثانية)</div>
+        <div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar-1"></div></div>
+      </div>
+
+      <button class="btn-3d success" id="btn-next-1" style="display:none; margin-top:auto;" onclick="finishTurn()">التالي ➡</button>
+    </div>
+
+    <!-- PHASE: MIDDLE PLAYERS -->
+    <div id="screen-pn" class="screen">
+      <h1 class="title">اللاعب: <span id="pn-name"></span></h1>
+      <div class="step-card" id="listen-section">
+        <p style="font-size: 18px; margin-bottom: 20px;">اسمع كلام اللاعب اللي قبلك (بالمقلوب👽)</p>
+        <button class="btn-3d accent" onclick="playPreviousReversed()">استمع للصوت 🔊</button>
+        <div class="audio-visualizer">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+      </div>
+      
+      <div class="record-btn-container" id="record-section" style="opacity:0.5; pointer-events:none;">
+        <div class="mic-btn" id="mic-btn-n">🎙️</div>
+        <div class="status-text" id="status-n">اسمع الصوت أولاً...</div>
+        <div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar-n"></div></div>
+      </div>
+
+      <button class="btn-3d success" id="btn-next-n" style="display:none; margin-top:auto;" onclick="finishTurn()">التالي ➡</button>
+    </div>
+
+    <!-- PHASE: LAST PLAYER (GUESS) -->
+    <div id="screen-guess" class="screen">
+      <h1 class="title">اللاعب الأخير: <span id="guess-name"></span></h1>
+      <div class="step-card">
+        <p style="font-size: 18px; margin-bottom: 20px;">أنت الأمل الأخير! اسمع هذا الصوت المعكوس وحاول تعرف الجملة الأصلية!</p>
+        <button class="btn-3d accent" onclick="playPreviousReversed()">استمع للصوت 🔊</button>
+      </div>
+
+      <div class="step-card" style="margin-top: 20px;">
+        <div class="input-group">
+          <label>إيش فهمت؟ اكتب الجملة هنا:</label>
+          <input type="text" id="final-guess" class="input-field" placeholder="اكتب تخمينك هنا...">
+        </div>
+      </div>
+
+      <button class="btn-3d success" style="margin-top:auto;" onclick="showResults()">شوف النتيجة! 🚀</button>
+    </div>
+
+    <!-- PHASE: RESULTS -->
+    <div id="screen-results" class="screen">
+      <h1 class="title" style="color:white;">الحصاد النهائي 😂</h1>
+      <div class="step-card" style="text-align: center;">
+        <p style="color:var(--accent); font-weight:bold;">الجملة الأصلية:</p>
+        <h3 id="res-original" style="margin-bottom: 15px; font-size:20px;">-</h3>
+        <p style="color:var(--secondary); font-weight:bold;">التخمين النهائي:</p>
+        <h3 id="res-guess" style="margin-bottom: 15px; font-size:20px;">-</h3>
+        
+        <p style="margin-top:20px;">نسبة التطابق (الذكاء الاصطناعي 🤖):</p>
+        <div class="match-score" id="res-score">0%</div>
+      </div>
+
+      <div class="timeline" id="timeline-container">
+        <!-- Injected via JS -->
+      </div>
+
+      <button class="btn-3d" style="margin-top:30px;" onclick="location.reload()">العب من جديد 🔄</button>
+    </div>
+
+  </div>
+
+  <script>
+    // Confirmation before exit
+    function confirmExit() {
+      if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
+        window.location.href = '../index.html';
+      }
+    }
+
+    let audioCtx;
+    let mediaRecorder;
+    let audioChunks = [];
+    
+    // Game State
+    let playersCount = 3;
+    let playerNames = [];
+    let currentPlayerIndex = 0; // 0 is player 1
+    let originalText = "";
+    
+    // Audio Buffers: buffers[i] stores the raw recording of player i
+    let buffers = []; 
+    
+    const MAX_RECORD_TIME = 15000; // 15 seconds
+    let recordStartTime;
+    let recordAnimFrame;
+    
+    const samplePhrases = [
+      "ذهب الطالب إلى المدرسة مبكراً",
+      "أكلت تفاحة حمراء لذيذة",
+      "السيارة السريعة تفوز بالسباق",
+      "شرب القط الحليب ونام",
+      "الطقس جميل ومناسب للرحلات",
+      "بطة بطتنا بطت بطن بطتكم",
+      "خيط حرير على حيط خليل"
+    ];
+
+    // Initialize Setup
+    function renderPlayerInputs() {
+      const count = parseInt(document.getElementById('players-count').value);
+      playersCount = Math.max(3, Math.min(10, count));
+      const container = document.getElementById('players-names-container');
+      container.innerHTML = '';
+      for(let i=0; i<playersCount; i++) {
+        container.innerHTML += `
+          <div class="input-group">
+            <input type="text" class="input-field player-name-input" placeholder="اسم اللاعب ${i+1}" required>
+          </div>
+        `;
+      }
+    }
+    renderPlayerInputs();
+
+    function randomizePhrase() {
+      const input = document.getElementById('p1-text');
+      const random = samplePhrases[Math.floor(Math.random() * samplePhrases.length)];
+      input.value = random;
+    }
+
+    async function startGame() {
+      const inputs = document.querySelectorAll('.player-name-input');
+      playerNames = Array.from(inputs).map((inp, i) => inp.value.trim() || `اللاعب ${i+1}`);
+      
+      try {
+        if(!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        window.globalStream = stream;
+        
+        currentPlayerIndex = 0;
+        buffers = [];
+        showPassScreen();
+      } catch (err) {
+        alert("يرجى إعطاء صلاحية المايكروفون!");
+        console.error(err);
+      }
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-'+id).classList.add('active');
+    }
+
+    function showPassScreen() {
+      document.getElementById('pass-player-name').textContent = playerNames[currentPlayerIndex];
+      showScreen('pass');
+    }
+
+    function startPlayerTurn() {
+      if (currentPlayerIndex === 0) {
+        // Player 1
+        document.getElementById('p1-name').textContent = playerNames[0];
+        setupRecordButton('mic-btn-1', 'status-1', 'timer-bar-1', 'btn-next-1', 0);
+        showScreen('p1');
+      } else if (currentPlayerIndex === playersCount - 1) {
+        // Last Player
+        document.getElementById('guess-name').textContent = playerNames[currentPlayerIndex];
+        showScreen('guess');
+      } else {
+        // Middle Players
+        document.getElementById('pn-name').textContent = playerNames[currentPlayerIndex];
+        
+        // Reset UI
+        document.getElementById('record-section').style.opacity = '0.5';
+        document.getElementById('record-section').style.pointerEvents = 'none';
+        document.getElementById('status-n').textContent = "اسمع الصوت أولاً...";
+        document.getElementById('timer-bar-n').style.width = '0%';
+        document.getElementById('btn-next-n').style.display = 'none';
+        
+        setupRecordButton('mic-btn-n', 'status-n', 'timer-bar-n', 'btn-next-n', currentPlayerIndex);
+        showScreen('pn');
+      }
+    }
+
+    function playPreviousReversed() {
+      if(currentPlayerIndex === 0) return;
+      const prevBuffer = buffers[currentPlayerIndex - 1];
+      if(!prevBuffer) return;
+      
+      const reversed = reverseAudioBuffer(prevBuffer);
+      playAudioBuffer(reversed);
+      
+      // Unlock recording if it's a middle player
+      if (currentPlayerIndex < playersCount - 1) {
+        const recSec = document.getElementById('record-section');
+        recSec.style.opacity = '1';
+        recSec.style.pointerEvents = 'auto';
+        document.getElementById('status-n').textContent = "اضغط مطولاً للتقليد (15 ثانية)";
+      }
+    }
+
+    function setupRecordButton(btnId, statusId, timerId, nextBtnId, pIndex) {
+      const btn = document.getElementById(btnId);
+      const status = document.getElementById(statusId);
+      const timerFill = document.getElementById(timerId);
+
+      // Clean old listeners by replacing node
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      const activeBtn = newBtn;
+
+      const stopRecording = () => {
+        if(mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          activeBtn.classList.remove('recording');
+          cancelAnimationFrame(recordAnimFrame);
+          status.textContent = "تم التسجيل ✅";
+          status.style.color = "var(--success)";
+          document.getElementById(nextBtnId).style.display = 'block';
+        }
+        window.removeEventListener('mouseup', stopRecording);
+        window.removeEventListener('touchend', stopRecording);
+      };
+
+      const startRecording = () => {
+        if(mediaRecorder && mediaRecorder.state === 'recording') return;
+        
+        window.addEventListener('mouseup', stopRecording);
+        window.addEventListener('touchend', stopRecording);
+        
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(window.globalStream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(audioChunks, { type: 'audio/webm' });
+          const arrayBuffer = await blob.arrayBuffer();
+          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+          buffers[pIndex] = audioBuffer;
+        };
+        mediaRecorder.start();
+
+        activeBtn.classList.add('recording');
+        status.textContent = "جاري التسجيل 🔴";
+        status.style.color = "var(--danger)";
+        
+        recordStartTime = Date.now();
+        const updateTimer = () => {
+          const elapsed = Date.now() - recordStartTime;
+          const percentage = Math.min(100, (elapsed / MAX_RECORD_TIME) * 100);
+          timerFill.style.width = percentage + '%';
+          if(elapsed >= MAX_RECORD_TIME) {
+            stopRecording();
+          } else {
+            recordAnimFrame = requestAnimationFrame(updateTimer);
+          }
+        };
+        recordAnimFrame = requestAnimationFrame(updateTimer);
+      };
+
+      activeBtn.addEventListener('mousedown', startRecording);
+      activeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+    }
+
+    function finishTurn() {
+      if (currentPlayerIndex === 0) {
+        originalText = document.getElementById('p1-text').value.trim();
+      }
+      currentPlayerIndex++;
+      showPassScreen();
+    }
+
+    function showResults() {
+      const guessText = document.getElementById('final-guess').value.trim();
+      
+      document.getElementById('res-original').textContent = originalText;
+      document.getElementById('res-guess').textContent = guessText;
+      
+      const similarity = calculateSimilarity(originalText, guessText);
+      const scoreEl = document.getElementById('res-score');
+      scoreEl.textContent = Math.round(similarity * 100) + '%';
+      
+      if(similarity > 0.8) scoreEl.style.color = "var(--success)";
+      else if(similarity > 0.4) scoreEl.style.color = "var(--accent)";
+      else scoreEl.style.color = "var(--danger)";
+
+      // Build Timeline
+      const container = document.getElementById('timeline-container');
+      container.innerHTML = '';
+      
+      for(let i=0; i<playersCount - 1; i++) {
+        const isFirst = i === 0;
+        container.innerHTML += `
+          <div class="timeline-item">
+            <div class="timeline-info">
+              <h4>${playerNames[i]}</h4>
+              <p>${isFirst ? 'الجملة الأصلية' : 'التقليد'}</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="play-btn" onclick="playSpecificBuffer(${i}, false)" title="سماع العادي">▶️</button>
+              <button class="play-btn" onclick="playSpecificBuffer(${i}, true)" style="background:var(--secondary);" title="سماع المقلوب">🔄</button>
+            </div>
+          </div>
+        `;
+      }
+
+      showScreen('results');
+    }
+
+    function playSpecificBuffer(index, reversed) {
+      let buf = buffers[index];
+      if(!buf) return;
+      if(reversed) buf = reverseAudioBuffer(buf);
+      playAudioBuffer(buf);
+    }
+
+    function reverseAudioBuffer(buffer) {
+      const numOfChannels = buffer.numberOfChannels;
+      const reversedBuffer = audioCtx.createBuffer(numOfChannels, buffer.length, buffer.sampleRate);
+      for (let i = 0; i < numOfChannels; i++) {
+        const originalData = buffer.getChannelData(i);
+        const reversedData = reversedBuffer.getChannelData(i);
+        for(let j=0; j<buffer.length; j++) {
+          reversedData[j] = originalData[buffer.length - 1 - j];
+        }
+      }
+      return reversedBuffer;
+    }
+
+    function playAudioBuffer(buffer) {
+      if(!buffer) return;
+      const source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioCtx.destination);
+      source.start();
+      
+      const bars = document.querySelectorAll('.bar');
+      const updateVis = () => {
+        bars.forEach(b => b.style.height = (Math.random() * 40 + 10) + 'px');
+      };
+      const visInterval = setInterval(updateVis, 100);
+      source.onended = () => {
+        clearInterval(visInterval);
+        bars.forEach(b => b.style.height = '10px');
+      };
+    }
+
+    // Levenshtein Distance for similarity
+    function calculateSimilarity(s1, s2) {
+      s1 = s1.toLowerCase().replace(/[.,!؟?]/g, '').trim();
+      s2 = s2.toLowerCase().replace(/[.,!؟?]/g, '').trim();
+      if (s1 === s2) return 1.0;
+      if (s1.length === 0 || s2.length === 0) return 0.0;
+      
+      const matrix = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+      for (let i = 0; i <= s1.length; i++) matrix[0][i] = i;
+      for (let j = 0; j <= s2.length; j++) matrix[j][0] = j;
+      
+      for (let j = 1; j <= s2.length; j++) {
+        for (let i = 1; i <= s1.length; i++) {
+          const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+          matrix[j][i] = Math.min(
+            matrix[j][i - 1] + 1, // deletion
+            matrix[j - 1][i] + 1, // insertion
+            matrix[j - 1][i - 1] + indicator // substitution
+          );
+        }
+      }
+      const distance = matrix[s2.length][s1.length];
+      const maxLength = Math.max(s1.length, s2.length);
+      return (maxLength - distance) / maxLength;
+    }
+  </script>
+</body>
+</html>
