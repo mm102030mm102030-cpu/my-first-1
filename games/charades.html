@@ -17,11 +17,7 @@
       background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    .top-btn {
-      background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px;
-      text-decoration: none; color: white; font-weight: bold; font-size: 14px;
-      cursor: pointer; border: none;
-    }
+    
     
     /* Setup Screen */
     .setup-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; width: 100%; max-width: 500px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
@@ -82,9 +78,18 @@
       50% { transform: scale(1.05); }
       100% { transform: scale(1); }
     }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+.top-bar > * { pointer-events: auto; }
+.top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+.top-btn:hover { background: rgba(255,255,255,0.2); }
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    
+    <a href="https://discord.gg/REST1" target="_blank" class="top-btn support-btn">الدعم الفني 🛠️</a>
+  </div>
 
   <!-- Audio Elements -->
   <audio id="sfx-ding" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg" preload="auto"></audio>
@@ -94,7 +99,7 @@
 
   <!-- TOP NAV -->
   <div class="top-nav">
-    <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+    
     <div style="font-weight: 900; letter-spacing: -0.5px;">بدون كلام 🎭</div>
   </div>
 
@@ -172,14 +177,14 @@
     <div style="font-size:80px; margin-bottom:20px;">🏆</div>
     <h1 class="title" style="font-size:42px;">الفائز!</h1>
     <div id="winner-name" style="font-size:32px; font-weight:bold; margin:20px 0; color:#facc15;">--</div>
-    <button class="btn" style="margin-top:40px;" onclick="location.reload()">العب من جديد 🔄</button>
+    <button class="btn" style="margin-top:40px;" onclick="window.location.href='../lobby.html'">الرئيسية 🏠</button>
   </div>
 
   <script>
     // Confirmation before exit
     function confirmExit() {
       if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
-        window.location.href = '../index.html';
+        window.location.href = '../lobby.html';
       }
     }
 
@@ -472,5 +477,16 @@
     }
 
   </script>
-</body>
+
+  <script>
+    /* Auth Guard */
+    (function() {
+      try { var u = localStorage.getItem('rafiq_user'); if (!u) { window.location.replace('../index.html'); } } catch(e) {}
+    })();
+    /* Prevent context menu */
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+  </script>
+
+  </body>
+
 </html>

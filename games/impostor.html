@@ -260,15 +260,24 @@
     }
     .kill-btn:hover { background: #dc2626; }
 
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+.top-bar > * { pointer-events: auto; }
+.top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+.top-btn:hover { background: rgba(255,255,255,0.2); }
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    
+    <a href="https://discord.gg/REST1" target="_blank" class="top-btn support-btn">الدعم الفني 🛠️</a>
+  </div>
   <div class="bg-impostor"></div>
   <div class="grid-overlay"></div>
 
   <!-- Navbar -->
   <nav class="navbar">
-    <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+    
     <div class="navbar-user">
       <div class="user-avatar" id="nav-avatar">ر</div>
     </div>
@@ -411,7 +420,7 @@
   <script>
     function confirmExit() {
       if(confirm("هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.")) {
-        window.location.href = "../index.html";
+        window.location.href = "../lobby.html";
       }
     }
 
@@ -421,5 +430,7 @@
       document.getElementById('nav-avatar').style.background = `linear-gradient(135deg, ${user.avatarColor}, #1a1040)`;
     }
   </script>
-</body>
+
+  </body>
+
 </html>

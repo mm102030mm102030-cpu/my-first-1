@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تكتكة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-light: #1e293b;
+      --primary: #0ea5e9;
+      --primary-dark: #0369a1;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+    }
+    * { 
+      box-sizing: border-box; margin: 0; padding: 0; 
+      user-select: none; -webkit-tap-highlight-color: transparent; 
+      touch-action: manipulation; /* Prevent 300ms delay & zoom */
+    }
+    body { 
+      font-family: 'Tajawal', sans-serif; 
+      background: radial-gradient(circle at 50% -20%, var(--bg-light), var(--bg-dark)); 
+      color: var(--text); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column;
+    }
+    
+    /* UI Classes */
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    .game-container { flex: 1; display: flex; flex-direction: column; padding: 80px 16px 120px; max-width: 800px; margin: 0 auto; width: 100%; position: relative; }
+    .screen { display: none; flex-direction: column; flex: 1; animation: fadeIn 0.3s ease; text-align: center; }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .title { font-size: 32px; font-weight: 900; margin-bottom: 20px; color: var(--primary); text-shadow: 0 0 10px rgba(14,165,233,0.5); }
+    .card { padding: 24px; margin-bottom: 20px; }
+    
+    .input-group { margin-bottom: 15px; text-align: right; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #cbd5e1; }
+    .input-field { width: 100%; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.1); color: white; font-family: 'Tajawal', sans-serif; font-size: 16px; transition: all 0.3s; }
+    .input-field:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.5); }
+    
+    .btn { width: 100%; padding: 16px; border-radius: 14px; background: linear-gradient(145deg, var(--primary), var(--primary-dark)); color: white; border: none; font-family: 'Tajawal', sans-serif; font-size: 20px; font-weight: 900; box-shadow: 0 6px 0 #075985, 0 10px 20px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; margin-bottom: 15px; }
+    .btn:active { transform: translateY(6px); box-shadow: 0 0px 0 #075985, 0 0px 0 rgba(0,0,0,0); }
+    .btn.accent { background: linear-gradient(145deg, #f59e0b, #d97706); box-shadow: 0 6px 0 #b45309, 0 10px 20px rgba(0,0,0,0.4); }
+    .btn.success { background: linear-gradient(145deg, #10b981, #059669); box-shadow: 0 6px 0 #047857, 0 10px 20px rgba(0,0,0,0.4); }
+    
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 999; }
+    .top-btn { background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); font-family: 'Tajawal', sans-serif; cursor: pointer; transition: background 0.2s; }
+    
+    /* Live Score Badge */
+    #live-score-badge { display: none; background: rgba(0,0,0,0.5); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 20px; padding: 6px 16px; font-weight: 900; color: var(--accent); box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
+    .score-pulse { animation: pulseScore 0.3s ease; }
+    @keyframes pulseScore { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: white; } 100% { transform: scale(1); } }
+    
+    /* HUD */
+    .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 12px 20px; }
+    .hud-item { display: flex; flex-direction: column; align-items: center; }
+    .hud-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .hud-val { font-size: 24px; font-weight: 900; }
+    .hud-val.urgent { color: var(--danger); animation: heartbeat 0.3s infinite alternate; text-shadow: 0 0 10px rgba(239, 68, 68, 0.8); }
+    
+    /* Dynamic Grid */
+    #grid-container { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(14%, 1fr)); 
+      gap: 10px; 
+      width: 100%; 
+      max-width: 500px; 
+      margin: 0 auto; 
+    }
+    
+    /* 3D Tile Boxes */
+    .box { 
+      aspect-ratio: 1/1;
+      display: flex; justify-content: center; align-items: center; 
+      background: linear-gradient(145deg, #1e40af, #3b82f6);
+      box-shadow: 0 6px 0 #1e3a8a, inset 0 2px 0 rgba(255,255,255,0.3);
+      border-radius: 14px; color: white; font-size: 26px; font-weight: 900; 
+      cursor: pointer; 
+      will-change: transform, opacity, box-shadow;
+      transition: transform 0.05s, box-shadow 0.05s, opacity 0.2s, background 0.2s, border 0.2s; 
+    }
+    .box:active, .box.pressed { 
+      transform: translateY(6px); 
+      box-shadow: 0 0px 0 #1e3a8a, inset 0 2px 0 rgba(255,255,255,0.1); 
+    }
+    
+    /* Box States */
+    .box.muted { 
+      background: rgba(255,255,255,0.05); 
+      box-shadow: none; 
+      color: rgba(255,255,255,0.1); 
+      transform: translateY(6px); 
+      pointer-events: none; 
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .box.hide-text { color: transparent !important; }
+    .box.trap { background: linear-gradient(145deg, #b91c1c, #ef4444); box-shadow: 0 6px 0 #991b1b; }
+    .box.trap:active { box-shadow: 0 0px 0 #991b1b; }
+    .box.freeze { background: linear-gradient(145deg, #0369a1, #0ea5e9); box-shadow: 0 6px 0 #075985; }
+    
+    /* Path Finder Glows */
+    .box.glow-target { box-shadow: 0 0 15px 5px rgba(6, 182, 212, 0.8), 0 6px 0 #1e3a8a; border: 2px solid #06b6d4; }
+    .box.glow-path-1 { box-shadow: 0 0 12px rgba(250, 204, 21, 0.7), 0 6px 0 #1e3a8a; border: 1px solid #facc15; }
+    .box.glow-path-2 { box-shadow: 0 0 8px rgba(250, 204, 21, 0.5), 0 6px 0 #1e3a8a; }
+    .box.glow-path-3 { box-shadow: 0 0 6px rgba(250, 204, 21, 0.3), 0 6px 0 #1e3a8a; }
+    .box.glow-path-4 { box-shadow: 0 0 4px rgba(250, 204, 21, 0.2), 0 6px 0 #1e3a8a; }
+    
+    /* Screen Shake */
+    .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+    
+    /* Perks UI */
+    .perk-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .perk-card { display: flex; align-items: center; text-align: right; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.2s; }
+    .perk-card:active { transform: scale(0.97); }
+    .perk-icon { font-size: 32px; margin-left: 15px; width: 50px; text-align: center; }
+    .perk-info h3 { font-size: 18px; color: var(--accent); margin-bottom: 4px; }
+    .perk-info p { font-size: 14px; color: rgba(255,255,255,0.7); }
+    
+    .active-perk-hud { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: bold; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+    
+    /* Big Manual Freeze Button */
+    #manual-freeze-btn { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; background: linear-gradient(145deg, #0284c7, #38bdf8); color: white; font-size: 24px; font-weight: 900; border: 2px solid white; box-shadow: 0 0 20px rgba(56, 189, 248, 0.5), 0 8px 0 #0369a1; z-index: 1000; cursor: pointer; }
+    #manual-freeze-btn:active { transform: translate(-50%, 8px); box-shadow: 0 0 10px rgba(56, 189, 248, 0.5), 0 0px 0 #0369a1; }
+    
+    #freeze-overlay { position: fixed; inset: 0; background: rgba(56, 189, 248, 0.15); pointer-events: none; z-index: 998; display: none; border: 5px solid #38bdf8; }
+    #shield-overlay { position: fixed; inset: 0; background: rgba(16, 185, 129, 0.3); pointer-events: none; z-index: 998; display: none; animation: flashShield 0.5s ease-out; }
+    @keyframes flashShield { 0% { opacity: 1; } 100% { opacity: 0; } }
+    
+    .lb-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    <div id="live-score-badge">النقاط: <span id="live-score">0</span></div>
+  </div>
+  <div id="freeze-overlay"></div>
+  <div id="shield-overlay"></div>
+  <button id="manual-freeze-btn" onclick="triggerManualFreeze()">❄️ تجميد الزمن الآن! ❄️</button>
+
+  <div class="game-container" id="main-container">
+    
+    <!-- PHASE 0: TUTORIAL -->
+    <div id="screen-tutorial" class="screen active">
+      <h1 class="title">تكتكة 📦</h1>
+      <div class="card glass-panel">
+        <h3 style="color:var(--primary); margin-bottom:15px; font-size:24px;">سرعة، تركيز، وبطاقات!</h3>
+        <p style="font-size:15px; margin-bottom:10px; line-height:1.6; text-align:right;">
+          1️⃣ <strong>الهدف:</strong> اضغط على الأرقام بالترتيب من 1 إلى النهاية بأسرع وقت ممكن.<br>
+          2️⃣ <strong>النقاط الحية:</strong> يرتفع العداد فوراً مع كل ضغطة! 10 نقاط لكل رقم و 5 عن كل ثانية متبقية.<br>
+          3️⃣ <strong>البطاقات:</strong> بعد كل مرحلة تنهيها، اختر بطاقة مساعدة (تجميد، درع، كاشف، والمزيد) لتسهيل القادم!<br>
+          4️⃣ <strong>المراحل 4:</strong> تزداد الصعوبة تدريجياً، وفي حال التعادل... الموت المفاجئ! 💀
+        </p>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="showScreen('setup')">ابدأ الإعداد 🚀</button>
+    </div>
+
+    <!-- PHASE 1: SETUP -->
+    <div id="screen-setup" class="screen">
+      <h1 class="title">اللاعبون</h1>
+      <div class="card glass-panel">
+        <div class="input-group">
+          <label>عدد اللاعبين (2+)</label>
+          <input type="number" id="players-count" class="input-field" value="2" min="2" onchange="renderPlayerInputs()">
+        </div>
+        <div id="players-names-container"></div>
+      </div>
+      <button class="btn success" onclick="startGame()">ابدأ الجلسة 🎯</button>
+    </div>
+
+    <!-- PHASE 2A: PERK SELECTION -->
+    <div id="screen-perks" class="screen">
+      <h1 style="color:var(--success); font-size:36px; margin-bottom:5px;" id="perk-player-name">--</h1>
+      <h2 style="color:var(--accent); font-size:24px; margin-bottom:15px;">اختر بطاقة مساعدة</h2>
+      <p style="color:rgba(255,255,255,0.7); margin-bottom:20px;">هذه البطاقة ستعمل للمرحلة القادمة فقط.</p>
+      <div class="perk-cards" id="perks-container"></div>
+    </div>
+
+    <!-- PHASE 2B: TURN ALERT -->
+    <div id="screen-alert" class="screen">
+      <h2 style="color:var(--accent); font-size:28px; margin-bottom:10px;">استعد!</h2>
+      <div class="card glass-panel">
+        <h1 style="font-size:36px; color:var(--success); margin-bottom:20px;" id="alert-player-name">--</h1>
+        <p style="font-size:20px; margin-bottom:10px;">المرحلة: <span id="alert-stage" style="font-weight:bold; color:var(--primary);">1</span></p>
+        <p style="font-size:18px;">المحاولات: <span id="alert-hearts" style="color:var(--danger);">❤️❤️❤️</span></p>
+        <p style="font-size:16px; margin-top:20px; color:rgba(255,255,255,0.6);" id="alert-stage-desc">--</p>
+      </div>
+      <button class="btn" style="margin-top:auto; padding: 25px; font-size: 26px;" onclick="startPlayerTurn()">بدء ⏱️</button>
+    </div>
+
+    <!-- PHASE 3: PLAY -->
+    <div id="screen-play" class="screen">
+      <div class="active-perk-hud" id="active-perk-display" style="display:none;"></div>
+      
+      <div class="glass-panel hud">
+        <div class="hud-item">
+          <span class="hud-label">اللاعب</span>
+          <span class="hud-val" id="hud-player" style="font-size:16px; color:var(--primary);">--</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">المرحلة</span>
+          <span class="hud-val" id="hud-stage">1</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">الوقت</span>
+          <span class="hud-val" id="hud-timer">0.0</span>
+        </div>
+      </div>
+      
+      <div style="text-align:center; font-size: 28px; font-weight: 900; color: white; margin-bottom: 15px; text-shadow: 0 0 5px rgba(255,255,255,0.5);">
+        المطلوب: <span id="target-number" style="color:var(--accent);">1</span>
+      </div>
+      
+      <div id="grid-container"></div>
+    </div>
+    
+    <!-- TURN RESULT -->
+    <div id="screen-turn-result" class="screen">
+      <h1 class="title" id="tr-title">--</h1>
+      <div class="card glass-panel">
+        <p id="tr-msg" style="font-size:18px; margin-bottom:20px;"></p>
+        <div style="font-size:20px; margin-bottom:10px;">صناديق صحيحة: <span id="tr-boxes" style="color:var(--success); font-weight:bold;">0</span> (<span id="tr-boxes-pts">0</span> نقطة)</div>
+        <div style="font-size:20px; margin-bottom:10px;">وقت متبقي: <span id="tr-time" style="color:var(--accent); font-weight:bold;">0</span> ثواني (<span id="tr-time-pts">0</span> نقطة)</div>
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
+        <div style="font-size:24px;">مجموعك الكلي: <span id="tr-total" style="color:white; font-weight:bold;">0</span></div>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="handleAfterTurn()">متابعة ➡️</button>
+    </div>
+
+    <!-- PHASE 4: LEADERBOARD -->
+    <div id="screen-leaderboard" class="screen">
+      <h1 class="title">ترتيب الجولة 🏆</h1>
+      <div class="card glass-panel" id="lb-container" style="padding: 15px; max-height:300px; overflow-y:auto;"></div>
+      <button class="btn" style="margin-top:auto;" onclick="proceedToNextStage()">المرحلة التالية ➡️</button>
+    </div>
+    
+    <!-- PHASE 6: FINAL WINNER -->
+    <div id="screen-winner" class="screen">
+      <h1 class="title" style="font-size:48px; margin-bottom: 10px;">النهاية! 🎉</h1>
+      <h2 style="color:var(--accent); margin-bottom: 20px;">لقد فاز البطل! 👑</h2>
+      <div class="card glass-panel">
+        <h2 style="font-size:40px; color:var(--success); margin-bottom:10px;" id="final-winner-name">--</h2>
+        <p style="font-size:20px; margin-bottom:20px;">بمجموع: <span id="final-winner-score" style="font-weight:bold; color:var(--accent);"></span> نقطة 🏆</p>
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
+        <div id="final-results-list" style="max-height: 250px; overflow-y: auto;"></div>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="window.location.href='../lobby.html'">الرئيسية 🏠</button>
+    </div>
+    
+    <!-- PHASE 5: SUDDEN DEATH RESULT -->
+    <div id="screen-sudden-death-result" class="screen">
+      <h1 class="title" style="color:var(--danger); font-size:40px;">الموت المفاجئ! 💀</h1>
+      <div class="card glass-panel">
+        <h2 style="font-size:30px; color:var(--success); margin-bottom:20px;" id="sd-winner">--</h2>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="window.location.href='../lobby.html'">الرئيسية 🏠</button>
+    </div>
+
+  </div>
+
+  <script>
+    /* GAME CONFIG */
+    const STAGES = [
+      { id: 1, maxNum: 20, time: 55, desc: "صناديق ثابتة. بدون إخفاء." },
+      { id: 2, maxNum: 30, time: 55, desc: "السرعة مطلوبة. ركز جيداً!" },
+      { id: 3, maxNum: 40, time: 60, desc: "احذر: ستختفي الأرقام لثوانٍ عند بلوغك 5!" },
+      { id: 4, maxNum: 50, time: 65, desc: "كل 5 ثوانٍ ستتبدل أماكن الصناديق!" }
+    ];
+    
+    const PERKS = [
+      { id: 'freeze', name: 'تجميد الزمن', icon: '❄️', desc: 'زر يوقف العداد لـ 5 ثوانٍ.' },
+      { id: 'shield', name: 'درع الأمان', icon: '🛡️', desc: 'يحميك من أول خطأ بالكامل.' },
+      { id: 'pathfinder', name: 'كاشف المسار', icon: '🔍', desc: 'يضيء الصناديق الـ 5 القادمة.' },
+      { id: 'clearsight', name: 'الرؤية الواضحة', icon: '👁️', desc: 'يبطل اختفاء الأرقام في المرحلة 3.' },
+      { id: 'timeplus', name: 'حقنة الوقت', icon: '💉', desc: 'يضيف 15 ثانية لرصيد الوقت.' },
+      { id: 'skip', name: 'التجاوز السريع', icon: '⏭️', desc: 'المرحلة تبدأ من الرقم 4 مباشرة.' }
+    ];
+    
+    let players = [];
+    let currentPlayerIndex = 0;
+    let currentStageIndex = 0;
+    
+    // Engine State
+    let targetNum = 1;
+    let timeLeft = 0;
+    let lastTickTime = 0;
+    let timerRAF = null;
+    let isFrozen = false;
+    let freezeTimer = null;
+    let stageInterval = null; 
+    let boxesData = [];
+    let liveScore = 0;
+    
+    // Active Perk State
+    let activeShield = false;
+    let activePathfinder = false;
+    let activeClearSight = false;
+    let hasManualFreeze = false;
+    
+    let audioCtx = null;
+    let isSuddenDeath = false;
+    let suddenDeathPlayers = [];
+    let sdCurrentIndex = 0;
+
+    function confirmExit() { if(confirm('هل أنت متأكد من خروجك؟')) window.location.href = '../lobby.html'; }
+    function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+    
+    // Audio (Hardware efficient tones)
+    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); }
+    function playTone(freq, type, duration, vol=1) {
+      if(!audioCtx) return;
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    const sfx = {
+      click: () => playTone(800, 'sine', 0.05, 0.3),
+      wrong: () => playTone(150, 'sawtooth', 0.2, 0.8),
+      tick: () => playTone(1200, 'square', 0.03, 0.1),
+      win: () => { playTone(600, 'sine', 0.1); setTimeout(()=>playTone(900, 'sine', 0.3), 100); },
+      shield: () => playTone(1000, 'sine', 0.2, 0.6),
+      freeze: () => playTone(1500, 'sine', 0.5, 0.3)
+    };
+
+    function renderPlayerInputs() {
+      const count = Math.max(2, parseInt(document.getElementById('players-count').value) || 2);
+      const container = document.getElementById('players-names-container');
+      container.innerHTML = '';
+      for(let i=0; i<count; i++) {
+        container.innerHTML += `<div class="input-group"><input type="text" class="input-field player-inp" placeholder="اسم اللاعب ${i+1}" required></div>`;
+      }
+    }
+    renderPlayerInputs();
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-'+id).classList.add('active');
+    }
+
+    function startGame() {
+      const inputs = document.querySelectorAll('.player-inp');
+      players = Array.from(inputs).map((inp, i) => ({
+        id: i, name: inp.value.trim() || `اللاعب ${i+1}`,
+        score: 0, lives: 3, active: true, perk: null, needsPerk: false
+      }));
+      currentStageIndex = 0;
+      currentPlayerIndex = -1;
+      prepareNextPlayerTurn();
+    }
+
+    function prepareNextPlayerTurn() {
+      do {
+        currentPlayerIndex++;
+        if (currentPlayerIndex >= players.length) {
+          showStageLeaderboard();
+          return;
+        }
+      } while (!players[currentPlayerIndex].active);
+      
+      const p = players[currentPlayerIndex];
+      
+      if (p.needsPerk) {
+         showPerkSelection(p);
+         return;
+      }
+      
+      const stage = STAGES[currentStageIndex];
+      document.getElementById('alert-player-name').textContent = p.name;
+      document.getElementById('alert-stage').textContent = stage.id;
+      document.getElementById('alert-hearts').textContent = '❤️'.repeat(p.lives);
+      document.getElementById('alert-stage-desc').textContent = stage.desc;
+      showScreen('alert');
+    }
+    
+    // --- PERKS LOGIC ---
+    function showPerkSelection(p) {
+       document.getElementById('perk-player-name').textContent = "دور: " + p.name;
+       const container = document.getElementById('perks-container');
+       container.innerHTML = '';
+       
+       let shuffledPerks = [...PERKS];
+       shuffleArray(shuffledPerks);
+       const choices = shuffledPerks.slice(0, 3);
+       
+       choices.forEach(perk => {
+          const div = document.createElement('div');
+          div.className = 'perk-card glass-panel';
+          div.innerHTML = `<div class="perk-icon">${perk.icon}</div><div class="perk-info"><h3>${perk.name}</h3><p>${perk.desc}</p></div>`;
+          
+          div.addEventListener('pointerdown', () => {
+             p.perk = perk;
+             p.needsPerk = false;
+             sfx.click();
+             prepareNextPlayerTurn();
+          });
+          container.appendChild(div);
+       });
+       showScreen('perks');
+    }
+    
+    function resetPerkState() {
+       activeShield = false;
+       activePathfinder = false;
+       activeClearSight = false;
+       hasManualFreeze = false;
+       document.getElementById('manual-freeze-btn').style.display = 'none';
+       document.getElementById('active-perk-display').style.display = 'none';
+    }
+
+    function startPlayerTurn() {
+      initAudio();
+      resetPerkState();
+      
+      const p = isSuddenDeath ? suddenDeathPlayers[sdCurrentIndex] : players[currentPlayerIndex];
+      const stage = isSuddenDeath ? { id: 'SD', maxNum: 25, time: 10 } : STAGES[currentStageIndex];
+      
+      targetNum = 1;
+      timeLeft = stage.time;
+      liveScore = p.score;
+      isFrozen = false;
+      
+      // Apply Perk
+      if (!isSuddenDeath && p.perk) {
+         document.getElementById('active-perk-display').innerHTML = `<span>${p.perk.icon}</span> ${p.perk.name} نشط!`;
+         document.getElementById('active-perk-display').style.display = 'flex';
+         
+         if(p.perk.id === 'timeplus') timeLeft += 15;
+         if(p.perk.id === 'shield') activeShield = true;
+         if(p.perk.id === 'pathfinder') activePathfinder = true;
+         if(p.perk.id === 'clearsight') activeClearSight = true;
+         if(p.perk.id === 'freeze') {
+            hasManualFreeze = true;
+            document.getElementById('manual-freeze-btn').style.display = 'block';
+         }
+         if(p.perk.id === 'skip') targetNum = 4;
+      }
+      
+      updateLiveScoreHUD(0);
+      document.getElementById('live-score-badge').style.display = 'block';
+      
+      document.getElementById('hud-player').textContent = p.name;
+      document.getElementById('hud-stage').textContent = stage.id;
+      document.getElementById('hud-timer').textContent = timeLeft.toFixed(1);
+      document.getElementById('target-number').textContent = targetNum;
+      document.getElementById('hud-timer').classList.remove('urgent');
+      
+      generateGrid(stage.maxNum);
+      showScreen('play');
+      
+      // Clear timers and use RAF
+      cancelAnimationFrame(timerRAF);
+      clearInterval(stageInterval);
+      lastTickTime = performance.now();
+      timerRAF = requestAnimationFrame(gameLoop);
+      
+      // Stage 4 shuffle interval
+      if(stage.id === 4) {
+        stageInterval = setInterval(() => {
+          if(!isFrozen && timeLeft > 0) {
+             playTone(300, 'triangle', 0.2, 0.5);
+             shakeScreen();
+             setTimeout(() => { if(!isFrozen && timeLeft > 0) shuffleGridUI(); }, 300);
+          }
+        }, 5000);
+      }
+    }
+    
+    function generateGrid(max) {
+      const grid = document.getElementById('grid-container');
+      grid.innerHTML = '';
+      boxesData = [];
+      
+      for(let i=1; i<=max; i++) {
+        boxesData.push({ type: 'num', val: i });
+      }
+      
+      shuffleArray(boxesData);
+      
+      boxesData.forEach((box, i) => {
+        const div = document.createElement('div');
+        div.className = 'box';
+        div.dataset.index = i;
+        div.dataset.val = box.val;
+        div.id = `box-${box.val}`;
+        
+        div.textContent = box.val;
+        
+        // Skip perk setup
+        if (box.val < targetNum) {
+           div.classList.add('muted');
+        }
+        
+        // Zero-lag pointerdown
+        div.addEventListener('pointerdown', (e) => {
+           e.preventDefault(); 
+           if(div.classList.contains('muted')) return;
+           div.classList.add('pressed');
+           handleBoxClick(div, box.val);
+        });
+        div.addEventListener('pointerup', () => div.classList.remove('pressed'));
+        div.addEventListener('pointerleave', () => div.classList.remove('pressed'));
+        
+        grid.appendChild(div);
+      });
+      
+      updatePathfinderGlow();
+    }
+    
+    function updatePathfinderGlow() {
+      // Clear old glows
+      document.querySelectorAll('.box').forEach(b => {
+         b.classList.remove('glow-target', 'glow-path-1', 'glow-path-2', 'glow-path-3', 'glow-path-4');
+      });
+      
+      if(activePathfinder) {
+         // Current target glows strongly
+         const targetEl = document.getElementById(`box-${targetNum}`);
+         if(targetEl) targetEl.classList.add('glow-target');
+         
+         for(let i=1; i<=4; i++) {
+            const el = document.getElementById(`box-${targetNum + i}`);
+            if(el) el.classList.add(`glow-path-${i}`);
+         }
+      }
+    }
+
+    function handleBoxClick(divElement, val) {
+      if(timeLeft <= 0) return;
+      
+      if(val === targetNum) {
+        // Correct
+        sfx.click();
+        divElement.classList.add('muted'); 
+        
+        updateLiveScoreHUD(10);
+        targetNum++;
+        
+        const maxNum = isSuddenDeath ? 25 : STAGES[currentStageIndex].maxNum;
+        if(targetNum > maxNum) {
+          endTurn(true); 
+        } else {
+          document.getElementById('target-number').textContent = targetNum;
+          updatePathfinderGlow();
+          
+          if(!isSuddenDeath && STAGES[currentStageIndex].id === 3 && targetNum === 6 && !activeClearSight) {
+            triggerStage3Hide();
+          }
+        }
+      } else if (val > targetNum) {
+        // Wrong
+        triggerMistake();
+      }
+    }
+    
+    function triggerMistake() {
+      if(isSuddenDeath) {
+        endTurn(false, true); 
+        return;
+      }
+      
+      if (activeShield) {
+         sfx.shield();
+         activeShield = false;
+         document.getElementById('active-perk-display').innerHTML = `<s>🛡️ درع الأمان استُهلك</s>`;
+         document.getElementById('shield-overlay').style.display = 'block';
+         setTimeout(() => { document.getElementById('shield-overlay').style.display = 'none'; }, 500);
+         return; 
+      }
+      
+      sfx.wrong();
+      shakeScreen();
+      timeLeft = Math.max(0, timeLeft - 1); 
+      
+      const p = players[currentPlayerIndex];
+      targetNum = (p.perk && p.perk.id === 'skip') ? 4 : 1;
+      
+      document.getElementById('target-number').textContent = targetNum;
+      
+      liveScore = p.score; 
+      updateLiveScoreHUD(0);
+      
+      const boxes = document.querySelectorAll('.box');
+      boxes.forEach(b => {
+         const v = parseInt(b.dataset.val);
+         b.classList.remove('hide-text');
+         if(v >= targetNum) b.classList.remove('muted');
+      });
+      
+      updatePathfinderGlow();
+      shuffleGridUI();
+    }
+    
+    function shuffleGridUI() {
+      const grid = document.getElementById('grid-container');
+      const boxes = Array.from(grid.children);
+      shuffleArray(boxes);
+      boxes.forEach(b => grid.appendChild(b)); 
+    }
+    
+    function shakeScreen() {
+      const container = document.getElementById('main-container');
+      container.classList.remove('shake');
+      void container.offsetWidth;
+      container.classList.add('shake');
+    }
+    
+    function triggerStage3Hide() {
+      const boxes = document.querySelectorAll('.box:not(.muted)');
+      boxes.forEach(b => b.classList.add('hide-text'));
+      setTimeout(() => {
+        boxes.forEach(b => b.classList.remove('hide-text'));
+      }, 3000);
+    }
+    
+    function triggerManualFreeze() {
+      if (!hasManualFreeze || isFrozen) return;
+      hasManualFreeze = false;
+      document.getElementById('manual-freeze-btn').style.display = 'none';
+      document.getElementById('active-perk-display').innerHTML = `<s>❄️ تجميد استُهلك</s>`;
+      sfx.freeze();
+      
+      isFrozen = true;
+      document.getElementById('freeze-overlay').style.display = 'block';
+      clearTimeout(freezeTimer);
+      freezeTimer = setTimeout(() => {
+        isFrozen = false;
+        document.getElementById('freeze-overlay').style.display = 'none';
+      }, 5000);
+    }
+
+    // High performance RAF Game Loop
+    function gameLoop(time) {
+      if(!lastTickTime) lastTickTime = time;
+      const delta = (time - lastTickTime) / 1000; 
+      lastTickTime = time;
+      
+      if(!isFrozen && timeLeft > 0) {
+         timeLeft -= delta;
+         if(timeLeft < 0) timeLeft = 0;
+         
+         const timerEl = document.getElementById('hud-timer');
+         timerEl.textContent = timeLeft.toFixed(1);
+         
+         if (timeLeft <= 10 && timeLeft > 0) {
+           timerEl.classList.add('urgent');
+           if(Math.floor(timeLeft * 10) % 10 === 0) sfx.tick(); 
+         } else {
+           timerEl.classList.remove('urgent');
+         }
+      }
+      
+      if(timeLeft <= 0) {
+        endTurn(false);
+      } else {
+        timerRAF = requestAnimationFrame(gameLoop);
+      }
+    }
+    
+    function updateLiveScoreHUD(pointsAdded) {
+       liveScore += pointsAdded;
+       const scoreEl = document.getElementById('live-score');
+       scoreEl.textContent = liveScore;
+       
+       if (pointsAdded > 0) {
+          const badge = document.getElementById('live-score-badge');
+          badge.classList.remove('score-pulse');
+          void badge.offsetWidth;
+          badge.classList.add('score-pulse');
+       }
+    }
+
+    function endTurn(isWin, fatalError = false) {
+      cancelAnimationFrame(timerRAF);
+      clearInterval(stageInterval);
+      clearTimeout(freezeTimer);
+      
+      isFrozen = false;
+      document.getElementById('freeze-overlay').style.display = 'none';
+      document.getElementById('manual-freeze-btn').style.display = 'none';
+      document.getElementById('live-score-badge').style.display = 'none';
+      
+      if (isSuddenDeath) {
+         const p = suddenDeathPlayers[sdCurrentIndex];
+         p.timeTaken = fatalError ? 999 : (10 - timeLeft);
+         p.fatal = fatalError;
+         
+         sdCurrentIndex++;
+         if(sdCurrentIndex >= suddenDeathPlayers.length) {
+            finishSuddenDeath();
+         } else {
+            alert(`خسر ${p.name}! دور اللاعب التالي.`);
+            startSuddenDeathTurn();
+         }
+         return;
+      }
+      
+      const p = players[currentPlayerIndex];
+      
+      let skipped = (p.perk && p.perk.id === 'skip') ? 3 : 0;
+      const correctBoxes = Math.max(0, targetNum - 1 - skipped);
+      const boxPts = correctBoxes * 10;
+      let timePts = 0;
+      
+      if(isWin) {
+        sfx.win();
+        timePts = Math.floor(timeLeft) * 5;
+        document.getElementById('tr-title').textContent = "مرحلة مكتملة! 🎉";
+        document.getElementById('tr-title').style.color = "var(--success)";
+        document.getElementById('tr-msg').textContent = "أداء رائع!";
+        
+        if (currentStageIndex < STAGES.length - 1) {
+           p.needsPerk = true; 
+        }
+      } else {
+        sfx.wrong();
+        p.lives--;
+        if(p.lives <= 0) p.active = false;
+        document.getElementById('tr-title').textContent = "انتهى الوقت! ⏰";
+        document.getElementById('tr-title').style.color = "var(--danger)";
+        document.getElementById('tr-msg').textContent = `خسرت محاولة. قلوبك المتبقية: ${'❤️'.repeat(p.lives)}`;
+      }
+      
+      p.perk = null; 
+      
+      const roundTotal = boxPts + timePts;
+      p.score += roundTotal;
+      
+      document.getElementById('tr-boxes').textContent = correctBoxes;
+      document.getElementById('tr-boxes-pts').textContent = boxPts;
+      document.getElementById('tr-time').textContent = Math.floor(timeLeft);
+      document.getElementById('tr-time-pts').textContent = timePts;
+      document.getElementById('tr-total').textContent = p.score;
+      
+      showScreen('turn-result');
+    }
+
+    function handleAfterTurn() {
+       prepareNextPlayerTurn();
+    }
+    
+    function showStageLeaderboard() {
+       const sorted = [...players].sort((a,b) => b.score - a.score);
+       const container = document.getElementById('lb-container');
+       container.innerHTML = '';
+       
+       sorted.forEach((p, idx) => {
+         let medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : ''));
+         let status = p.active ? '❤️'.repeat(p.lives) : '💀 مقصى';
+         container.innerHTML += `
+           <div class="lb-item">
+             <div style="font-weight: bold;">${medal} ${p.name} <span style="font-size:12px; color:gray; display:block;">${status}</span></div>
+             <div style="font-weight: 900; color: var(--accent);">${p.score} نقطة</div>
+           </div>
+         `;
+       });
+       
+       if (currentStageIndex >= STAGES.length - 1 || players.filter(p => p.active).length <= 1) {
+          const maxScore = sorted[0].score;
+          const topPlayers = sorted.filter(p => p.score === maxScore && p.active);
+          
+          if(topPlayers.length > 1 && maxScore > 0) {
+             suddenDeathPlayers = topPlayers.map(p => ({...p, timeTaken: 999, fatal: false}));
+             const btn = document.createElement('button');
+             btn.className = 'btn danger';
+             btn.textContent = "موت مفاجئ! 💀";
+             btn.onclick = startSuddenDeath;
+             container.appendChild(btn);
+             showScreen('leaderboard');
+          } else {
+             showFinalWinnerScreen(sorted);
+          }
+       } else {
+          showScreen('leaderboard');
+       }
+    }
+    
+    function proceedToNextStage() {
+       currentStageIndex++;
+       currentPlayerIndex = -1;
+       prepareNextPlayerTurn();
+    }
+    
+    function showFinalWinnerScreen(sorted) {
+       const winner = sorted[0];
+       document.getElementById('final-winner-name').textContent = winner.name;
+       document.getElementById('final-winner-score').textContent = winner.score;
+       
+       const listContainer = document.getElementById('final-results-list');
+       listContainer.innerHTML = '';
+       sorted.forEach((p, idx) => {
+         let medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : ''));
+         listContainer.innerHTML += `
+           <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 8px;">
+             <div style="font-weight: bold;">${medal} ${p.name}</div>
+             <div style="font-weight: bold; color: var(--accent);">${p.score} نقطة</div>
+           </div>
+         `;
+       });
+       showScreen('winner');
+    }
+    
+    function startSuddenDeath() {
+       isSuddenDeath = true;
+       sdCurrentIndex = 0;
+       alert(`جولة الموت المفاجئ! أرقام 1-25، 10 ثواني، وأي خطأ = خسارة! اللاعب الأول: ${suddenDeathPlayers[0].name}`);
+       startSuddenDeathTurn();
+    }
+    
+    function startSuddenDeathTurn() {
+       const p = suddenDeathPlayers[sdCurrentIndex];
+       document.getElementById('alert-player-name').textContent = p.name;
+       document.getElementById('alert-stage').textContent = "الموت المفاجئ";
+       document.getElementById('alert-hearts').textContent = "💀";
+       document.getElementById('alert-stage-desc').textContent = "1-25 بدون أخطاء!";
+       showScreen('alert');
+    }
+    
+    function finishSuddenDeath() {
+       const sorted = [...suddenDeathPlayers].sort((a,b) => {
+          if(a.fatal && !b.fatal) return 1;
+          if(!a.fatal && b.fatal) return -1;
+          return a.timeTaken - b.timeTaken;
+       });
+       
+       const winner = sorted[0];
+       document.getElementById('sd-winner').textContent = `${winner.name} 🥇 (${winner.timeTaken.toFixed(1)} ثانية)`;
+       
+       if (winner.fatal) {
+          document.getElementById('sd-winner').textContent = "الجميع خسر في الموت المفاجئ! 🤦‍♂️";
+       }
+       
+       showScreen('sudden-death-result');
+    }
+
+  </script>
+</body>
+</html>

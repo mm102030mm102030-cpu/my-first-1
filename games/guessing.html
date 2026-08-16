@@ -20,7 +20,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text);
-      min-height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+      min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 50px;
     }
 
     /* Top Nav */
@@ -40,15 +40,11 @@
     .image-modal.show { opacity: 1; }
     .image-modal img { max-width: 95%; max-height: 85%; border-radius: 12px; object-fit: contain; }
     .image-modal-close { margin-top: 20px; color: white; font-size: 18px; font-weight: bold; background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 20px; }
-    .top-btn {
-      background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px;
-      text-decoration: none; color: white; font-weight: bold; font-size: 14px;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
+    
     .support-btn { background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.5); }
 
     /* Screens */
-    .screen { display: none; flex-direction: column; min-height: 100vh; padding: 80px 20px 30px; }
+    .screen { display: none; flex-direction: column; min-height: 100vh; padding: 80px 20px 100px; }
     .screen.active { display: flex; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -166,12 +162,21 @@
     .mt-auto { margin-top: auto; }
     .small-tip { font-size: 14px; color: #64748b; text-align: center; margin-top: 8px; }
     hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 16px 0; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+.top-bar > * { pointer-events: auto; }
+.top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+.top-btn:hover { background: rgba(255,255,255,0.2); }
   </style>
 </head>
 <body>
-  <div class="top-nav">
-    <button onclick="confirmExit()" style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif;">🏠 الرئيسية</button>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    
     <a href="https://discord.gg/REST1" target="_blank" class="top-btn support-btn">الدعم الفني 🛠️</a>
+  </div>
+  <div class="top-nav">
+    
+    
   </div>
 
   <!-- SCREEN: TUTORIAL -->
@@ -194,8 +199,8 @@
   <div id="screen-setup" class="screen">
     <h1 class="title">إعداد اللاعبين ⚙️</h1>
     <div class="card">
-      <label class="input-label">عدد اللاعبين (2 - 8)</label>
-      <input type="number" id="players-count" class="input-field" value="3" min="2" max="8" onchange="renderPlayerSetup()">
+      <label class="input-label">عدد اللاعبين (2+)</label>
+      <input type="number" id="players-count" class="input-field" value="3" min="2"  onchange="renderPlayerSetup()">
       <div id="players-setup-container"></div>
     </div>
     <button class="btn" onclick="startGame()">ابدأ اللعب 🎮</button>
@@ -273,7 +278,7 @@
     <div class="winner-name-display" id="winner-name">--</div>
     <p style="font-size:20px; opacity:0.8; margin-bottom:30px;">هو آخر من صمد في لعبة التخمين!</p>
     <div class="card" id="final-lb"></div>
-    <button class="btn mt-auto" onclick="location.reload()">العب من جديد 🔄</button>
+    <button class="btn mt-auto" onclick="window.location.href='../lobby.html'">الرئيسية 🏠</button>
   </div>
 
   <div id="image-modal" class="image-modal" onclick="closeImageModal()">
@@ -284,7 +289,7 @@
   <script>
     function confirmExit() {
       if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
-        window.location.href = '../index.html';
+        window.location.href = '../lobby.html';
       }
     }
     // ============================
@@ -423,7 +428,7 @@
     let tieBreakerPlayers = [];
 
     function renderPlayerSetup() {
-      const count = Math.max(2, Math.min(8, parseInt(document.getElementById('players-count').value) || 2));
+      const count = Math.max(2, parseInt(document.getElementById('players-count').value) || 2);
       const c = document.getElementById('players-setup-container');
       c.innerHTML = '';
       for(let i=0; i<count; i++) {
@@ -480,6 +485,8 @@
     }
 
     function startGuessing() {
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
       currentGuesses = [];
       guessTurn = 0;
       showPassScreen();
@@ -498,17 +505,39 @@
 
     let currentNumpad = '';
     let guessTimerInterval = null;
-    let guessTimeLeft = 10;
+    let guessTimeLeft = 15;
+    
+    let audioCtx;
+    function playTickSound() {
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
 
     function startGuessTimer() {
-        guessTimeLeft = 10;
+        guessTimeLeft = 15;
         document.getElementById('timer-val').textContent = guessTimeLeft;
         if(guessTimerInterval) clearInterval(guessTimerInterval);
         guessTimerInterval = setInterval(() => {
             guessTimeLeft--;
             document.getElementById('timer-val').textContent = guessTimeLeft;
+            
+            if(guessTimeLeft <= 5 && guessTimeLeft > 0) {
+               playTickSound();
+            }
+            
             if(guessTimeLeft <= 0) {
                 clearInterval(guessTimerInterval);
+                playTickSound();
                 if(!currentNumpad) currentNumpad = '0';
                 confirmGuess(true); // auto confirm
             }
@@ -590,43 +619,12 @@
       
       const farthestPlayerIndices = farthestIndices.map(idx => currentGuesses[idx].playerIndex);
 
-      // Render guesses list
-      const list = document.getElementById('guesses-list');
-      list.innerHTML = '';
-      sorted.forEach(g => {
-        const p = players[g.playerIndex];
-        const dist = Math.abs(g.value - answer);
-        const isFarthest = farthestPlayerIndices.includes(g.playerIndex);
-        const hearts = '❤️'.repeat(Math.max(0, p.hearts)) + (p.eliminated ? ' (خارج)' : '');
-        list.innerHTML += `
-          <div class="guess-item ${isFarthest && farthestPlayerIndices.length === 1 ? 'loser-heart' : ''} ${isFarthest && farthestPlayerIndices.length > 1 ? 'tie-warning' : ''}">
-            <div>
-              <div class="guess-name">${p.name} ${isFarthest && farthestPlayerIndices.length === 1 ? '💔' : ''}${isFarthest && farthestPlayerIndices.length > 1 ? '⚔️' : ''}</div>
-              <div style="font-size:13px; color:#64748b;">الفرق: ${dist.toLocaleString('ar')}</div>
-            </div>
-            <div style="text-align:left;">
-              <div class="guess-val">${g.value.toLocaleString('ar')}</div>
-              <div class="guess-hearts">${hearts}</div>
-            </div>
-          </div>`;
-      });
-
-      // Render eliminated list
-      const eliminatedPlayers = players.filter(p => p.eliminated);
-      const elimList = document.getElementById('eliminated-list');
-      if (eliminatedPlayers.length > 0) {
-          elimList.innerHTML = '<p style="color:#ef4444; margin-bottom:5px;">💀 اللاعبون المستبعدون:</p>' + 
-            eliminatedPlayers.map(p => `<span style="text-decoration: line-through; margin-left: 10px; color:#94a3b8;">${p.name}</span>`).join('');
-      } else {
-          elimList.innerHTML = '';
-      }
-
       const msgBox = document.getElementById('result-msg');
       const msgText = document.getElementById('result-msg-text');
       msgBox.style.display = 'block';
       const nextBtn = document.getElementById('btn-next-round');
 
-      // Tie Breaker Logic
+      // Tie Breaker Logic & Heart Deduction
       if (farthestPlayerIndices.length > 1) {
           isTieBreaker = true;
           tieBreakerPlayers = farthestPlayerIndices;
@@ -668,6 +666,37 @@
           }
       }
 
+      // Render guesses list AFTER hearts are deducted
+      const list = document.getElementById('guesses-list');
+      list.innerHTML = '';
+      sorted.forEach(g => {
+        const p = players[g.playerIndex];
+        const dist = Math.abs(g.value - answer);
+        const isFarthest = farthestPlayerIndices.includes(g.playerIndex);
+        const hearts = '❤️'.repeat(Math.max(0, p.hearts)) + (p.eliminated ? ' (خارج)' : '');
+        list.innerHTML += `
+          <div class="guess-item ${isFarthest && farthestPlayerIndices.length === 1 ? 'loser-heart' : ''} ${isFarthest && farthestPlayerIndices.length > 1 ? 'tie-warning' : ''}">
+            <div>
+              <div class="guess-name">${p.name} ${isFarthest && farthestPlayerIndices.length === 1 ? '💔' : ''}${isFarthest && farthestPlayerIndices.length > 1 ? '⚔️' : ''}</div>
+              <div style="font-size:13px; color:#64748b;">الفرق: ${dist.toLocaleString('ar')}</div>
+            </div>
+            <div style="text-align:left;">
+              <div class="guess-val">${g.value.toLocaleString('ar')}</div>
+              <div class="guess-hearts">${hearts}</div>
+            </div>
+          </div>`;
+      });
+
+      // Render eliminated list
+      const eliminatedPlayers = players.filter(p => p.eliminated);
+      const elimList = document.getElementById('eliminated-list');
+      if (eliminatedPlayers.length > 0) {
+          elimList.innerHTML = '<p style="color:#ef4444; margin-bottom:5px;">💀 اللاعبون المستبعدون:</p>' + 
+            eliminatedPlayers.map(p => `<span style="text-decoration: line-through; margin-left: 10px; color:#94a3b8;">${p.name}</span>`).join('');
+      } else {
+          elimList.innerHTML = '';
+      }
+
       showScreen('results');
     }
 
@@ -697,5 +726,16 @@
       showScreen('winner');
     }
   </script>  </script>
-</body>
+
+  <script>
+    /* Auth Guard */
+    (function() {
+      try { var u = localStorage.getItem('rafiq_user'); if (!u) { window.location.replace('../index.html'); } } catch(e) {}
+    })();
+    /* Prevent context menu */
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+  </script>
+
+  </body>
+
 </html>
