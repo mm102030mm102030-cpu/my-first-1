@@ -7,7 +7,8 @@
   <meta name="description" content="رفيق — اختر لعبتك وابدأ المتعة مع أصدقائك" />
   <title>رفيق — اختر لعبتك</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=3.0" />
+<script src="js/protection.js"></script>
 </head>
 <body>
   <!-- BG -->
@@ -48,6 +49,11 @@
   <!-- MAIN -->
   <div style="padding-top:64px; position:relative; z-index:2; min-height:100vh;">
 
+    <!-- DISCORD BANNER -->
+    <a href="https://discord.gg/rest1" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #5865F2; color: white; padding: 12px; text-decoration: none; font-weight: bold; font-size: 16px;">
+      <span style="font-size: 20px;">🎧</span> الدعم الفني متواجد الآن على ديسكورد - انضم إلينا!
+    </a>
+
     <!-- HERO -->
     <div class="lobby-hero">
       <div>
@@ -81,11 +87,40 @@
 
     <!-- GAMES GRID -->
     <div class="games-grid">
+      <a href="games/who-is-right.html" class="game-card" id="card-who-is-right" style="border-color:var(--success);">
+        <div class="game-card-icon">⚖️</div>
+        <div class="game-card-title">مين الصح</div>
+        <div class="game-card-desc">اكتشف الحقيقة من بين الأكاذيب! مرر الهاتف وصوت سراً.</div>
+        <div class="game-card-meta">
+          <span class="game-badge players">👥 2+ لاعبين</span>
+          <span class="game-badge">⚖️ كشف حقائق</span>
+        </div>
+      </a>
+
+      <a href="games/draw-challenge.html" class="game-card" id="card-draw-challenge" style="border-color:var(--secondary);">
+        <div class="game-card-icon">🎨</div>
+        <div class="game-card-title">تحدي الرسم</div>
+        <div class="game-card-desc">ارسم الكلمة السرية بأسرع وقت! من سيخمن الكلمة قبل نفاد الوقت؟</div>
+        <div class="game-card-meta">
+          <span class="game-badge players">👥 2+ لاعبين</span>
+          <span class="game-badge">🎨 رسم وتخمين</span>
+        </div>
+      </a>
+
+      <a href="games/guess-price.html" class="game-card game-guessing" id="card-guess-price">
+        <div class="game-card-icon">💰</div>
+        <div class="game-card-title">خمن السعر</div>
+        <div class="game-card-desc">خمّن السعر الحقيقي للمنتجات العجيبة! الأقرب دون أن يتجاوز يفوز.</div>
+        <div class="game-card-meta">
+          <span class="game-badge players">👥 2+ لاعبين</span>
+          <span class="game-badge">💡 تخمين</span>
+        </div>
+      </a>
 
       <a href="games/bara-alsalfa.html" class="game-card game-bara" id="card-bara">
         <div class="game-card-icon">🤫</div>
         <div class="game-card-title">برا السالفة</div>
-        <div class="game-card-desc">من سيكون البريء ومن هو المتهم؟ اجمعوا الأدلة واكشفوا الحقيقة!</div>
+        <div class="game-card-desc">من سيكون البريء ومن هو المتهم؟ اجمعوا الأدلة واكشفوا الحقيقة قبل فوات الأوان!</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 3-10 لاعبين</span>
           <span class="game-badge">🧠 استراتيجية</span>
@@ -95,7 +130,7 @@
       <a href="games/mafia.html" class="game-card game-mafia" id="card-mafia">
         <div class="game-card-icon">🕵️</div>
         <div class="game-card-title">المافيا</div>
-        <div class="game-card-desc">المافيا تقضي على الأبرياء، والمحقق يحاول فضحهم قبل فوات الأوان!</div>
+        <div class="game-card-desc">المافيا تقضي على الأبرياء والمحقق يحاول فضحهم — من سينجح قبل فوات الأوان؟</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 4-12 لاعباً</span>
           <span class="game-badge">🎭 أدوار</span>
@@ -105,7 +140,7 @@
       <a href="games/letter-bomb.html" class="game-card game-letter-bomb" id="card-bomb">
         <div class="game-card-icon">💣</div>
         <div class="game-card-title">قنبلة الحروف</div>
-        <div class="game-card-desc">القنبلة بين يديك — قل كلمة بالحرف المطلوب قبل أن تنفجر!</div>
+        <div class="game-card-desc">القنبلة بين يديك — قل كلمة بالحرف المطلوب قبل أن تنفجر في وجهك!</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2+ لاعبين</span>
           <span class="game-badge">⚡ سرعة</span>
@@ -115,7 +150,7 @@
       <a href="games/say-it-backwards.html" class="game-card game-say-back" id="card-backwards">
         <div class="game-card-icon">🤪</div>
         <div class="game-card-title">احكيها بالعكس</div>
-        <div class="game-card-desc">الضحك مضمون — قل العبارة بالعكس أو اخسر النقطة!</div>
+        <div class="game-card-desc">الضحك مضمون — قل العبارة بالعكس أو اخسر النقطة! هل أنت جاهز للتحدي؟</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2+ لاعبين</span>
           <span class="game-badge">😂 مضحك</span>
@@ -125,7 +160,7 @@
       <a href="games/challenge-30.html" class="game-card game-challenge" id="card-challenge">
         <div class="game-card-icon">⏱️</div>
         <div class="game-card-title">تحدي الثلاثين</div>
-        <div class="game-card-desc">ثلاثون ثانية لإنجاز التحدي — هل تستطيع؟</div>
+        <div class="game-card-desc">ثلاثون ثانية لإنجاز التحدي — هل لديك ما يكفي من الشجاعة والسرعة؟</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2+ لاعبين</span>
           <span class="game-badge">🔥 تحدي</span>
@@ -135,7 +170,7 @@
       <a href="games/guessing.html" class="game-card game-guessing" id="card-guessing">
         <div class="game-card-icon">🧠</div>
         <div class="game-card-title">لعبة التخمين</div>
-        <div class="game-card-desc">خمّن الكلمة أو الشخصية من خلال التلميحات فقط!</div>
+        <div class="game-card-desc">خمّن الكلمة أو الشخصية من خلال التلميحات فقط — من أسرع ذكاءً بينكم؟</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2+ لاعبين</span>
           <span class="game-badge">💡 ذكاء</span>
@@ -145,7 +180,7 @@
       <a href="games/charades.html" class="game-card game-charades" id="card-charades">
         <div class="game-card-icon">🎭</div>
         <div class="game-card-title">بدون كلام</div>
-        <div class="game-card-desc">مثّل وحرّك بدون كلام، ودع أصدقائك يخمنون!</div>
+        <div class="game-card-desc">مثّل وحرّك بدون أن تنطق حرفاً واحداً، ودع أصدقائك يخمنون ما في ذهنك!</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 3+ لاعبين</span>
           <span class="game-badge">🎪 تمثيل</span>
@@ -153,9 +188,9 @@
       </a>
 
       <a href="games/wrong-answer.html" class="game-card game-wrong-answer" id="card-wrong-answer">
-        <div class="game-card-icon">🤦‍♂️</div>
+        <div class="game-card-icon">🤦</div>
         <div class="game-card-title">جاوب غلط</div>
-        <div class="game-card-desc">جاوب بشكل خاطئ لتربح، لكن احذر من فخ الإجابة الصحيحة!</div>
+        <div class="game-card-desc">اجب بشكل خاطئ لتربح، لكن احذر من فخ الإجابة الصحيحة — اللعبة المعكوسة!</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2-8 لاعبين</span>
           <span class="game-badge">⚡ سرعة وتركيز</span>
@@ -165,7 +200,7 @@
       <a href="games/flags-challenge.html" class="game-card game-flags" id="card-flags">
         <div class="game-card-icon">🌍</div>
         <div class="game-card-title">تحدي الأعلام</div>
-        <div class="game-card-desc">اكتشف العلم قبل الآخرين واربح النقاط!</div>
+        <div class="game-card-desc">اكتشف العلم قبل الآخرين واربح النقاط — ما مدى ثقافتك الجغرافية؟</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2+ لاعبين</span>
           <span class="game-badge">🌍 جغرافيا وسرعة</span>
@@ -173,9 +208,9 @@
       </a>
 
       <a href="games/guess-logo.html" class="game-card game-logos" id="card-logos">
-        <div class="game-card-icon">🤔</div>
+        <div class="game-card-icon">🔍</div>
         <div class="game-card-title">خمن الشعار</div>
-        <div class="game-card-desc">اختبر ذاكرتك البصرية، من الأسرع في معرفة الشعار؟</div>
+        <div class="game-card-desc">اختبر ذاكرتك البصرية — من الأسرع في التعرف على شعارات العلامات التجارية؟</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2+ لاعبين</span>
           <span class="game-badge">🧠 ذكاء وسرعة</span>
@@ -185,14 +220,45 @@
       <a href="games/taktaka.html" class="game-card game-taktaka" id="card-taktaka">
         <div class="game-card-icon">📦</div>
         <div class="game-card-title">تكتكة</div>
-        <div class="game-card-desc">سرعة بديهة، ذاكرة بصرية، وموت مفاجئ! هل أنت الأسرع؟</div>
+        <div class="game-card-desc">سرعة بديهة وذاكرة بصرية وموت مفاجئ — اللعبة التي تجعلك على حافة الكرسي!</div>
         <div class="game-card-meta">
           <span class="game-badge players">👥 2+ لاعبين</span>
           <span class="game-badge">⚡ سرعة وتركيز</span>
         </div>
       </a>
 
+      <a href="games/speed-challenge.html" class="game-card game-speed" id="card-speed">
+        <div class="game-card-icon">⚡</div>
+        <div class="game-card-title">تحدي السرعة</div>
+        <div class="game-card-desc">أجب بـ 3 إجابات قبل انتهاء العداد واحمِ قلوبك — لعبة المراحل المتصاعدة!</div>
+        <div class="game-card-meta">
+          <span class="game-badge players">👥 2+ لاعبين</span>
+          <span class="game-badge">🔥 سرعة بديهة</span>
+        </div>
+      </a>
+
+      <a href="games/sallemli.html" class="game-card" id="card-sallemli" style="border-color:#ff4757;">
+        <div class="game-card-icon">🧨</div>
+        <div class="game-card-title">سلملي</div>
+        <div class="game-card-desc">قنبلة موقوتة مجهولة الوقت! أجب بسرعة ومرر الهاتف قبل أن تنفجر في يدك.</div>
+        <div class="game-card-meta">
+          <span class="game-badge players">👥 3+ لاعبين</span>
+          <span class="game-badge" style="background:rgba(255, 71, 87, 0.2); color:#ff4757;">🧨 سرعة بديهة وتوتر</span>
+        </div>
+      </a>
+
+      <a href="games/rakibha.html" class="game-card" id="card-rakibha" style="border-color:var(--accent);">
+        <div class="game-card-icon">🧩</div>
+        <div class="game-card-title">ركّبها</div>
+        <div class="game-card-desc">أعد تركيب الصورة المقطعة قبل انتهاء الوقت. 5 مراحل تزداد صعوبة بشكل جنوني!</div>
+        <div class="game-card-meta">
+          <span class="game-badge players">👥 2+ لاعبين</span>
+          <span class="game-badge">🧩 تركيب وتركيز</span>
+        </div>
+      </a>
+
     </div>
+
 
     <div style="text-align:center;padding:40px 24px;color:rgba(255,255,255,0.2);font-size:12px;">
       رفيق &copy; 2026 — كل الحقوق محفوظة
@@ -270,8 +336,8 @@
       });
     }
 
-    function changeName() {
-      var newName = prompt('ما هو الاسم الجديد الذي تريده؟');
+    async function changeName() {
+      var newName = await customPrompt('ما هو الاسم الجديد الذي تريده؟');
       if (newName && newName.trim().length >= 2) {
         _user.name = newName.trim();
         _user.displayName = _user.name + '#' + _user.tag;
@@ -282,7 +348,7 @@
     }
 
     function randomGame() {
-      var games = ['bara-alsalfa.html', 'mafia.html', 'letter-bomb.html', 'say-it-backwards.html', 'challenge-30.html', 'guessing.html', 'charades.html', 'wrong-answer.html', 'flags-challenge.html', 'guess-logo.html', 'taktaka.html'];
+      var games = ['who-is-right.html', 'bara-alsalfa.html', 'mafia.html', 'letter-bomb.html', 'say-it-backwards.html', 'challenge-30.html', 'guessing.html', 'charades.html', 'wrong-answer.html', 'flags-challenge.html', 'guess-logo.html', 'taktaka.html', 'speed-challenge.html', 'sallemli.html', 'rakibha.html'];
       var random = games[Math.floor(Math.random() * games.length)];
       showToast('🎲 جاري اختيار لعبة عشوائية...');
       setTimeout(function() { window.location.href = 'games/' + random; }, 800);
@@ -367,8 +433,8 @@
       } catch(e) { showToast('المعرّف: ' + id); }
     }
 
-    function doLogout() {
-      if (confirm('هل تريد تسجيل الخروج؟')) {
+    async function doLogout() {
+      if (await customConfirm('هل تريد تسجيل الخروج؟')) {
         localStorage.removeItem('rafiq_user');
         window.location.href = 'index.html';
       }

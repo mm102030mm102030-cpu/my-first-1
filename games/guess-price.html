@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <link rel="stylesheet" href="../css/theme-override.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>خمن السعر</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap');
+
+        :root {
+            --primary: #6366f1; --primary-dark: #4338ca;
+            --accent: #f59e0b; --accent-dark: #b45309;
+            --danger: #ef4444; --danger-dark: #b91c1c;
+            --success: #10b981; --success-dark: #047857;
+            --bg: #1e1b4b; 
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            background-image: radial-gradient(circle at top left, #312e81 0%, transparent 70%);
+            min-height: 100vh;
+            color: white; display: flex; flex-direction: column;
+            user-select: none; -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; z-index: 10; }
+        .top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .top-btn:hover { background: rgba(255,255,255,0.2); }
+        .game-title { font-size: 20px; font-weight: 900; text-shadow: 0 4px 0 rgba(0,0,0,0.3); margin: 0; color: #fff;}
+
+        .screen { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 20px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; overflow-y: auto; overflow-x: hidden; width:100%; }
+        .screen.active { display: flex; }
+        @keyframes popIn { from { opacity:0; transform: scale(0.9); } to { opacity:1; transform: scale(1); } }
+        @keyframes popUp { from { opacity:0; transform: translateY(50px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 10px var(--accent); } 50% { box-shadow: 0 0 30px var(--accent); } 100% { box-shadow: 0 0 10px var(--accent); } }
+
+        .btn {
+            background: var(--primary); color: white; border: none; border-radius: 16px;
+            padding: 16px 24px; font-size: 20px; font-weight: 900; font-family: 'Tajawal', sans-serif;
+            box-shadow: 0 6px 0 var(--primary-dark), 0 10px 15px rgba(0,0,0,0.3);
+            cursor: pointer; transition: all 0.1s; text-align: center; margin: 10px; width: 100%; max-width: 300px;
+        }
+        .btn:active { transform: translateY(6px); box-shadow: 0 0px 0 var(--primary-dark), 0 2px 5px rgba(0,0,0,0.3); }
+        .btn-accent { background: var(--accent); box-shadow: 0 6px 0 var(--accent-dark), 0 10px 15px rgba(0,0,0,0.3); color: black;}
+        .btn-accent:active { transform: translateY(6px); box-shadow: 0 0px 0 var(--accent-dark), 0 2px 5px rgba(0,0,0,0.3); }
+        .btn-success { background: var(--success); box-shadow: 0 6px 0 var(--success-dark), 0 10px 15px rgba(0,0,0,0.3); }
+        .btn-success:active { transform: translateY(6px); box-shadow: 0 0px 0 var(--success-dark), 0 2px 5px rgba(0,0,0,0.3); }
+
+        .card-3d { background: #2e2a5d; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 8px 0 #1e1b4b, inset 0 2px 0 rgba(255,255,255,0.1); width: 100%; max-width: 400px; text-align: right;}
+        .card-title { font-size: 20px; font-weight: 900; margin-bottom: 16px; color: #a5b4fc; text-align: right;}
+
+        .stepper { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 12px; margin-bottom: 12px; }
+        .step-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; font-size: 24px; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; }
+        .step-btn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0); }
+        .step-val { font-size: 32px; font-weight: 900; text-align: center; width: 60px; }
+
+        .names-list { display: flex; flex-direction: column; gap: 16px; max-height: 50vh; overflow-y: auto; padding: 10px 0; width: 100%; max-width: 400px;}
+        .name-input { background: rgba(0,0,0,0.2); border: none; border-radius: 16px; padding: 18px 24px; color: white; font-size: 20px; font-weight: 800; font-family: 'Tajawal', sans-serif; width: 100%; box-sizing: border-box; box-shadow: inset 0 4px 8px rgba(0,0,0,0.3); outline: none; transition: 0.2s;}
+        .name-input:focus { background: rgba(0,0,0,0.4); box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), 0 0 0 2px var(--primary); }
+
+        /* Numpad styles */
+        .numpad-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 320px; margin-top: 15px; }
+        .numpad-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 12px; padding: 15px; font-size: 24px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; font-family: 'Tajawal', sans-serif;}
+        .numpad-btn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0); background: rgba(255,255,255,0.2);}
+        .numpad-action { background: var(--primary); box-shadow: 0 4px 0 var(--primary-dark); }
+        .numpad-action:active { box-shadow: 0 0 0 var(--primary-dark); }
+        .numpad-delete { background: var(--danger); box-shadow: 0 4px 0 var(--danger-dark); }
+        .numpad-delete:active { box-shadow: 0 0 0 var(--danger-dark); }
+
+        .price-display { background: rgba(0,0,0,0.3); border-radius: 16px; padding: 10px; font-size: 36px; font-weight: 900; color: var(--accent); text-align: center; width: 100%; max-width: 320px; box-shadow: inset 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 10px; min-height: 60px; display:flex; align-items:center; justify-content:center; letter-spacing: 2px;}
+
+        .product-image-container { width: 100%; max-width: 300px; height: 180px; border-radius: 16px; overflow: hidden; margin-bottom: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 3px solid rgba(255,255,255,0.1); position: relative; background: #fff;}
+        .product-image { width: 100%; height: 100%; object-fit: contain; }
+        .product-title { font-size: 22px; font-weight: 900; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .product-desc { font-size: 14px; opacity: 0.8; margin-bottom: 10px; max-width: 350px; line-height: 1.4; }
+
+        /* Timer */
+        .timer-bar-bg { width: 100%; max-width: 350px; height: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; overflow: hidden; margin-bottom: 15px; }
+        .timer-bar-fill { height: 100%; background: var(--success); transition: width 1s linear, background 0.3s; width: 100%; }
+
+        /* Black Pass Screen */
+        #screen-pass { background: #000; z-index: 100; position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
+
+        /* Results Board */
+        .guess-card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 12px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 2px solid transparent; width: 100%; max-width: 350px; animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: translateY(20px);}
+        .guess-card.winner { border-color: var(--accent); background: rgba(245, 158, 11, 0.1); animation: popUp 0.5s forwards, pulseGlow 2s infinite; }
+        .guess-card.exact { border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
+        .guess-card.over { opacity: 0.5; }
+        
+        .huge-reveal { font-size: 60px; font-weight: 900; color: var(--accent); text-shadow: 0 0 20px rgba(245, 158, 11, 0.5), 0 4px 0 rgba(0,0,0,0.5); margin: 20px 0; display:none;}
+        
+        .podium { 
+            display: flex; align-items: flex-end; justify-content: center; gap: 16px; 
+            margin-top: 50px; height: 260px; width: 100%; max-width: 400px;
+            border-bottom: 4px solid rgba(255, 255, 255, 0.1); padding-bottom: 0px;
+        }
+        .podium-place { display: flex; flex-direction: column; align-items: center; width: 110px; position: relative; animation: slideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+        .podium-score {
+            font-size: 24px; font-weight: 900; color: #fbbf24; text-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+            margin-bottom: 12px;
+        }
+        .podium-bar { 
+            width: 100%; border-radius: 20px 20px 0 0; 
+            display: flex; justify-content: center; padding-top: 20px; 
+            font-size: 48px; font-weight: 900; color: white; 
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: inset 0 8px 16px rgba(255,255,255,0.2), 0 -8px 24px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        
+        .podium-place.rank-2 .podium-bar { height: 140px; background: linear-gradient(180deg, #94a3b8 0%, #475569 100%); }
+        .podium-place.rank-1 .podium-bar { height: 190px; background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%); z-index: 2; box-shadow: inset 0 8px 16px rgba(255,255,255,0.3), 0 0 30px rgba(245, 158, 11, 0.4); }
+        .podium-place.rank-3 .podium-bar { height: 100px; background: linear-gradient(180deg, #b45309 0%, #78350f 100%); }
+        
+        .podium-name {
+            font-weight: 800; font-size: 16px; color: white; margin-top: 15px; 
+            text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            background: rgba(255,255,255,0.1); padding: 8px; border-radius: 12px;
+            backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .crown { position: absolute; top: -60px; font-size: 45px; filter: drop-shadow(0 4px 10px rgba(245,158,11,0.6)); animation: float 2s infinite ease-in-out; }
+        
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
+
+    </style>
+<script src="../js/protection.js"></script>
+</head>
+<body>
+
+    <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    
+    <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">خمن السعر</div>
+</div>
+
+    <!-- Screen 1: Setup -->
+    <div id="screen-setup" class="screen active">
+        <h1 class="title">إعداد الجلسة</h1>
+        
+        <div class="card-3d">
+            <div class="card-title">🔄 عدد الجولات</div>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjRounds(-5)">-</button>
+                <div>
+                    <div class="step-val" id="val-rounds">5</div>
+                    <div style="font-size:14px; opacity:0.6; text-align:center;">جولات</div>
+                </div>
+                <button class="step-btn" onclick="adjRounds(5)">+</button>
+            </div>
+        </div>
+
+        <div class="card-3d">
+            <div class="card-title">👥 عدد اللاعبين</div>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjPlayers(-1)">-</button>
+                <div>
+                    <div class="step-val" id="val-players">3</div>
+                    <div style="font-size:14px; opacity:0.6; text-align:center;">لاعبين</div>
+                </div>
+                <button class="step-btn" onclick="adjPlayers(1)">+</button>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="goToNames()">التالي ➡</button>
+    </div>
+
+    <!-- Screen 2: Names -->
+    <div id="screen-names" class="screen">
+        <h1 class="title">أسماء المتنافسين ✍️</h1>
+        <div class="names-list" id="names-list"></div>
+        <button class="btn btn-accent" style="margin-top:20px;" onclick="startGame()">ابدأ التحدي 🚀</button>
+    </div>
+
+    <!-- Screen 3: Pass Device -->
+    <div id="screen-pass" class="screen">
+        <div style="font-size: 80px; margin-bottom:20px;">📱</div>
+        <h2 style="font-size: 24px; opacity:0.8; margin-bottom: 10px;">دور اللاعب:</h2>
+        <h1 id="pass-player-name" style="font-size: 50px; color: var(--accent); margin-bottom: 40px; text-shadow: 0 4px 0 rgba(0,0,0,0.5);">أحمد</h1>
+        <p style="opacity:0.6; margin-bottom:40px;">يرجى تسليم الهاتف للاعب المذكور، ولا تدع أحداً يرى شاشتك!</p>
+        <button class="btn btn-success" onclick="startGuessing()">أنا جاهز، اكشف المنتج 👀</button>
+    </div>
+
+    <!-- Screen 4: Guessing -->
+    <div id="screen-guess" class="screen">
+        <div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar"></div></div>
+        
+        <div class="product-image-container">
+            <img id="prod-img" class="product-image" src="" alt="Product">
+        </div>
+        <div id="prod-title" class="product-title">اسم المنتج</div>
+        <div id="prod-desc" class="product-desc">وصف المنتج القصير جدا</div>
+        
+        <div class="price-display">
+            <span id="price-input" style="margin-left: 5px;"></span> <span style="font-size:20px; opacity:0.7;">$</span>
+        </div>
+
+        <div class="numpad-container">
+            <button class="numpad-btn" onclick="typeNum(1)">1</button>
+            <button class="numpad-btn" onclick="typeNum(2)">2</button>
+            <button class="numpad-btn" onclick="typeNum(3)">3</button>
+            <button class="numpad-btn" onclick="typeNum(4)">4</button>
+            <button class="numpad-btn" onclick="typeNum(5)">5</button>
+            <button class="numpad-btn" onclick="typeNum(6)">6</button>
+            <button class="numpad-btn" onclick="typeNum(7)">7</button>
+            <button class="numpad-btn" onclick="typeNum(8)">8</button>
+            <button class="numpad-btn" onclick="typeNum(9)">9</button>
+            <button class="numpad-btn numpad-delete" onclick="deleteNum()">⌫</button>
+            <button class="numpad-btn" onclick="typeNum(0)">0</button>
+            <button class="numpad-btn numpad-action" onclick="submitGuess()">✓</button>
+        </div>
+    </div>
+
+    <!-- Screen 5: Round Reveal -->
+    <div id="screen-reveal" class="screen">
+        <h2 style="margin-bottom: 5px;">السعر الحقيقي هو:</h2>
+        <div id="actual-price-reveal" class="huge-reveal">0$</div>
+        
+        <div id="guesses-list" style="width:100%; display:flex; flex-direction:column; align-items:center; margin-top:20px; flex:1; overflow-y:auto;">
+            <!-- Guesses injected here -->
+        </div>
+
+        <button id="btn-next-round" class="btn btn-primary" style="display:none; margin-top:20px;" onclick="nextRoundAction()">الجولة التالية</button>
+    </div>
+
+    <!-- Screen 6: Final Podium -->
+    <div id="screen-podium" class="screen">
+        <div style="font-size: 60px; margin-bottom:10px;">🏁</div>
+        <h1 class="title" style="color:var(--accent);">نهاية اللعبة!</h1>
+        
+        <div class="podium" id="podium-container">
+            <!-- Podium injected here -->
+        </div>
+
+        <div class="card-3d" id="stats-card" style="margin-top:40px; text-align:center;">
+            <!-- Stats injected here -->
+        </div>
+
+        <div style="display:flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 400px;">
+            <button class="btn btn-primary" style="flex:1; margin:0;" onclick="location.reload()">لعب مرة أخرى</button>
+            <button class="btn" style="flex:1; margin:0; background:rgba(255,255,255,0.1); box-shadow:none;" onclick="window.location.href='../index.html'">الرئيسية</button>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const PRODUCTS = [
+            { id: 1, title: "قلم حبر بيك كلاسيكي (Bic Cristal)", description: "أشهر قلم جاف بلاستيكي كروي في العالم، استخدام يومي بسيط.", category: "أدوات مكتبية", image_url: "https://images.unsplash.com/photo-1585336261026-70e6089d7fa1?auto=format&fit=crop&w=600&q=80", actual_price: 1 },
+            { id: 2, title: "وجبة بيج ماك من ماكدونالدز (Big Mac)", description: "ساندويتش برجر شهير بقطعتي لحم والصلصة الخاصة.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80", actual_price: 6 },
+            { id: 3, title: "قطعة قماش تنظيف أبل (Apple Polishing Cloth)", description: "قطعة قماش قماشية ناعمة مصممة لتنظيف شاشات أجهزة أبل دون خدوش.", category: "تقنية وغرائب", image_url: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80", actual_price: 19 },
+            { id: 4, title: "كوب ستانلي كوينشر 1.2 لتر (Stanley Quencher 40oz)", description: "كوب حراري شهير بمقبض وقشة يحفظ برودة المشروبات لساعات طويلة.", category: "أدوات منزلية", image_url: "https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=600&q=80", actual_price: 45 },
+            { id: 5, title: "لعبة مكعب روبيك الأصلي 3x3", description: "المكعب اللغز الكلاسيكي ثلاثي الأبعاد بألوانه الستة.", category: "ألعاب وترفيه", image_url: "https://images.unsplash.com/photo-1591994843349-f415893b3a6b?auto=format&fit=crop&w=600&q=80", actual_price: 12 },
+            { id: 6, title: "سماعات أبل إيربودز برو 2 (AirPods Pro 2)", description: "سماعات لاسلكية داخل الأذن مع خاصية عزل الضوضاء النشط ومنفذ USB-C.", category: "إلكترونيات", image_url: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=600&q=80", actual_price: 249 },
+            { id: 7, title: "كوب قهوة ذكي مسخن (Ember Smart Mug 2)", description: "كوب سيراميكي متصل بتطبيق للتحكم في درجة حرارة القهوة بدقة.", category: "تقنية ذكية", image_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80", actual_price: 130 },
+            { id: 8, title: "جهاز نينتندو سويتش أوليد (Nintendo Switch OLED)", description: "منصة ألعاب هجينة محمولة وتلفزيونية بشاشة أوليد فائقة الوضوح 7 بوصة.", category: "ألعاب فيديو", image_url: "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?auto=format&fit=crop&w=600&q=80", actual_price: 350 },
+            { id: 9, title: "نظارة أبل فيجن برو (Apple Vision Pro)", description: "نظارة حوسبة مكانية وواقع معزز بدقة عرض فائقة وتتبع للعين واليد.", category: "تقنية متطورة", image_url: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?auto=format&fit=crop&w=600&q=80", actual_price: 3499 },
+            { id: 10, title: "قلم حبر مون بلانك مايسترشتوك (Montblanc Meisterstück 149)", description: "قلم حبر سائل فاخر كلاسيكي بريشة من الذهب الخالص عيار 18 قيراط.", category: "أدوات فاخرة", image_url: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=600&q=80", actual_price: 990 },
+            { id: 11, title: "شاحن لاسلكي مغناطيسي ماج سيف (MagSafe)", description: "قرص شحن لاسلكي يلتصق مغناطيسياً بظهر الهاتف بقدرة 15 واط.", category: "إلكترونيات", image_url: "https://images.unsplash.com/photo-1622445262464-84b1456045b6?auto=format&fit=crop&w=600&q=80", actual_price: 39 },
+            { id: 12, title: "علبة كوكاكولا معدنية كلاسيكية 330 مل", description: "مشروب غازي كلاسيكي بنكهة الكولا المنعشة.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80", actual_price: 2 },
+            { id: 13, title: "عجلات حاسوب أبل ماك برو (Apple Mac Pro Wheels)", description: "طقم من أربع عجلات مصنوعة من الفولاذ المقاوم للصدأ لجهاز الماك برو.", category: "تقنية وغرائب", image_url: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80", actual_price: 699 },
+            { id: 14, title: "حذاء رياضي نايكي إير فورس 1 (Nike Air Force 1 '07)", description: "حذاء رياضي كلاسيكي باللون الأبيض الجلدي الأيقوني.", category: "موضة وأزياء", image_url: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80", actual_price: 115 },
+            { id: 15, title: "مجفف شعر دايسون سوبر سونيك (Dyson Supersonic)", description: "مجفف شعر عالي السرعة بمحرك رقمي ذكي يحمي الشعر من الحرارة الشديدة.", category: "أجهزة عناية", image_url: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80", actual_price: 429 },
+            { id: 16, title: "ماكينة قهوة إسبريسو منزلية لا مارزوكو (La Marzocco Micra)", description: "ماكينة صنع القهوة الاحترافية بتصميم إيطالي فاخر للمنازل.", category: "أجهزة فاخرة", image_url: "https://images.unsplash.com/photo-1517668808822-9ebd02f2a888?auto=format&fit=crop&w=600&q=80", actual_price: 3900 },
+            { id: 17, title: "قطعة شوكولاتة كيت كات كلاسيكية 4 أصابع", description: "ويفر مقرمش مغطى بشوكولاتة الحليب الناعمة.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&w=600&q=80", actual_price: 1 },
+            { id: 18, title: "مقبض باب ذكي يعمل بالبصمة (Ultraloq U-Bolt Pro)", description: "قفل أمان ذكي يفتح عبر البصمة، التطبيق، لوحة الأرقام أو المفتاح.", category: "تقنية ذكية", image_url: "https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=600&q=80", actual_price: 199 },
+            { id: 19, title: "ستيك لحم واغيو ياباني A5 وزن 400 جرام", description: "قطعة لحم بقري فاخرة رخامية عالية الجودة مستوردة من مقاطعة ميازاكي.", category: "أطعمة فاخرة", image_url: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80", actual_price: 160 },
+            { id: 20, title: "ماوس ألعاب لاسلكي لوجيتك جي برو (Logitech G Pro X Superlight)", description: "فأرة ألعاب خفيفة الوزن جداً أقل من 63 جرام بحساس دقيق للبطولات.", category: "ملحقات ألعاب", image_url: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80", actual_price: 159 },
+            { id: 21, title: "ساعة رولكس صبمارينر ديت (Rolex Submariner Date)", description: "ساعة غوص كلاسيكية سويسرية فاخرة مصنوعة من فولاذ أويستر ستيل ومقاومة للماء حتى 300 متر.", category: "ساعات فاخرة", image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80", actual_price: 10250 },
+            { id: 22, title: "مصباح مكتبي بإضاءة قمرية ثلاثية الأبعاد (Moon Lamp)", description: "مصباح ديكور LED يعيد تفاصيل سطح القمر بألوان متعددة وتعتيم باللمس.", category: "ديكور وإضاءة", image_url: "https://images.unsplash.com/photo-1532767153582-b1a0e5145009?auto=format&fit=crop&w=600&q=80", actual_price: 22 },
+            { id: 23, title: "حقيبة يد هيرميس بيركين 30 (Hermès Birkin 30 Leather)", description: "حقيبة جلدية فاخرة نادرة مصنوعة يدوياً وتعتبر من أغلى الحقائب النسائية في العالم.", category: "موضة فاخرة", image_url: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80", actual_price: 11500 },
+            { id: 24, title: "علبة زبدة فول سوداني سكيبي (Skippy 454g)", description: "زبدة فول سوداني ناعمة وكريمية قابلة للدهن.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&w=600&q=80", actual_price: 4 },
+            { id: 25, title: "درون تصوير دي جي آي ميني 4 برو (DJI Mini 4 Pro)", description: "طائرة مسيرة خفيفة لتصوير فيديو سينمائي بدقة 4K مع استشعار للعوائق بكل الاتجاهات.", category: "تصوير وتقنية", image_url: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=600&q=80", actual_price: 759 },
+            { id: 26, title: "حذاء رياضي ديور × جوردان 1 (Air Jordan 1 High OG Dior)", description: "حذاء نادر نتج عن تعاون تاريخي بين علامة جوردان ودار الأزياء الفرنسية ديور.", category: "مقتنيات نادرة", image_url: "https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=600&q=80", actual_price: 7000 },
+            { id: 27, title: "مكنسة روبوتية ذكية رومبا (iRobot Roomba j7+)", description: "روبوت ذكي لتنظيف الأرضيات مع تفريغ آلي للأوساخ والتعرف على الأسلاك والعوائق.", category: "أجهزة منزلية", image_url: "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=600&q=80", actual_price: 600 },
+            { id: 28, title: "بيتزا إيطالية مارجريتا طازجة من مطعم فاخر", description: "عجينة نابولية مخبوزة على الحطب مع جبن الموزاريلا وصلصة الطماطم الإيطالية والريحان.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80", actual_price: 18 },
+            { id: 29, title: "خاتم ذكي لتتبع النوم والصحة (Oura Ring Gen 3)", description: "خاتم معدني أنيق يقيس نبضات القلب، جودة النوم، ودرجة حرارة الجسم باستمرار.", category: "تقنية صحية", image_url: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80", actual_price: 299 },
+            { id: 30, title: "مكبر صوت بلوتوث جي بي إل فليب 6 (JBL Flip 6)", description: "سماعة لاسلكية مقاومة للماء والغبار مع صوت قوي وبطارية تدوم 12 ساعة.", category: "صوتيات", image_url: "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=600&q=80", actual_price: 129 },
+            { id: 31, title: "علبة آيس كريم هاجن داز فانيليا 473 مل (Häagen-Dazs)", description: "آيس كريم كلاسيكي غني محضر من الحليب الطازج وخلاصة حبوب الفانيليا الطبيعية.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80", actual_price: 6 },
+            { id: 32, title: "كرسي مكتب مريح هيرمان ميلر إيرون (Herman Miller Aeron)", description: "أشهر كرسي مريح في العالم لدعم فقرات الظهر وساعات العمل الطويلة.", category: "أثاث ومكاتب", image_url: "https://images.unsplash.com/photo-1580481077195-c228c3b70830?auto=format&fit=crop&w=600&q=80", actual_price: 1695 },
+            { id: 33, title: "كاميرا فورية بولارويد ناو بلس (Polaroid Now+)", description: "كاميرا تصوير تطبع الصور فوراً مع عدسات وفلاتر متصلة بالهاتف الذكي.", category: "تصوير", image_url: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80", actual_price: 149 },
+            { id: 34, title: "كرتونة بيض طازج 12 حبة", description: "بيض دجاج عضوي طازج متوسط الحجم للطبخ اليومي.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=600&q=80", actual_price: 3 },
+            { id: 35, title: "جهاز ألعاب محمول ستيم ديك أوليد 512GB (Steam Deck)", description: "حاسوب ألعاب محمول باليد يشغل ألعاب الكمبيوتر الضخمة بدقة وسلاسة.", category: "ألعاب فيديو", image_url: "https://images.unsplash.com/photo-1612287233207-695034c49830?auto=format&fit=crop&w=600&q=80", actual_price: 549 },
+            { id: 36, title: "كافيار بيلوغا إمبيريال 50 جرام (Beluga Caviar)", description: "بيض سمك الحفش الأسود الفاخر والنادر الذي يقدم في أرقى المطاعم.", category: "أطعمة فاخرة", image_url: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80", actual_price: 320 },
+            { id: 37, title: "لوح شطرنج إلكتروني ذكي فاخر (Square Off Grand Kingdom)", description: "لوح شطرنج خشبي يحرك القطع بمفرده عبر تقنية المغناطيس والذكاء الاصطناعي.", category: "ألعاب وذكاء", image_url: "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&w=600&q=80", actual_price: 399 },
+            { id: 38, title: "نظارة شمسية كلاسيكية راي بان واي فيرر (Ray-Ban Wayfarer)", description: "نظارة شمسية أيقونية بإطار أسود وعدسات لحماية العين من الأشعة فوق البنفسجية.", category: "إكسسوارات", image_url: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80", actual_price: 180 },
+            { id: 39, title: "علبة شوكولاتة فيريرو روشيه 24 حبة (Ferrero Rocher)", description: "كرات الويفر المقرمشة المغلفة بقطع البندق والشوكولاتة والذهب.", category: "حلويات", image_url: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=600&q=80", actual_price: 14 },
+            { id: 40, title: "سماعات سوني الرائدة اللاسلكية (Sony WH-1000XM5)", description: "أفضل سماعات رأس ملغية للضوضاء في السوق بجودة صوت استثنائية.", category: "صوتيات", image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80", actual_price: 399 },
+            { id: 41, title: "قلم أبل الجيل الثاني (Apple Pencil 2nd Gen)", description: "قلم رقمي ذكي للشاشات اللمسية للرسم والكتابة بدقة متناهية وشحن مغناطيسي.", category: "ملحقات أجهزة", image_url: "https://images.unsplash.com/photo-1585336261026-70e6089d7fa1?auto=format&fit=crop&w=600&q=80", actual_price: 129 },
+            { id: 42, title: "عطر فاخر باكرات روج 540 (Baccarat Rouge 540 70ml)", description: "عطر نيش فرنسي شهير يتميز بنفحات العنبر والخشب والزعفران النادر.", category: "عطور فاخرة", image_url: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=600&q=80", actual_price: 325 },
+            { id: 43, title: "كرت شاشة ألعاب إنفيديا RTX 4090", description: "أقوى معالج رسوميات للحواسيب لتشغيل الألعاب بدقة 4K وتطبيقات الذكاء الاصطناعي.", category: "عتاد حاسوب", image_url: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=600&q=80", actual_price: 1599 },
+            { id: 44, title: "ساندويتش شاورما دجاج صاروخ مع ثوم ومخلل", description: "شاورما دجاج عربية ملفوفة بخبز الصاج المحمص مع صلصة الثوم المميزة.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=600&q=80", actual_price: 5 },
+            { id: 45, title: "مكبر صوت ذكي مع شاشة أمازون إيكو شو 8 (Amazon Echo Show 8)", description: "شاشة ذكية تعمل بالمساعد الصوتي أليكسا لإدارة المنزل الذكي والمكالمات.", category: "تقنية ذكية", image_url: "https://images.unsplash.com/photo-1543512214-318c7553f230?auto=format&fit=crop&w=600&q=80", actual_price: 149 },
+            { id: 46, title: "شاشة ألعاب منحنية سامسونج أوديسي جي 9 (Samsung Odyssey Neo G9 49\")", description: "شاشة ألعاب عريضة جداً 49 بوصة بتقنية ميني ليد ومعدل تحديث 240Hz.", category: "شاشات حاسوب", image_url: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80", actual_price: 2199 },
+            { id: 47, title: "سكين طهاة ياباني فاخر مصنوع يدوياً من فولاذ دمشقي (Miyabi Birchwood)", description: "سكين تقطيع حاد للغاية بطبقات متعددة ومقبض من خشب البتولا الطبيعي.", category: "أدوات مطبخ", image_url: "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=600&q=80", actual_price: 299 },
+            { id: 48, title: "لوح تزلج كهربائي وان ويل (Onewheel GT)", description: "لوح توازن فردي بإطار عريض واحد للتنقل والمغامرة على الطرق الوعرة والأسفلت.", category: "رياضة وتنقل", image_url: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=600&q=80", actual_price: 2200 },
+            { id: 49, title: "ميدالية تتبع الأغراض أبل إيرتاج حبة واحدة (Apple AirTag)", description: "جهاز تتبع صغير يوضع مع المفاتيح أو الحقائب لتحديد مكانها بدقة عبر شبكة Find My.", category: "إلكترونيات", image_url: "https://images.unsplash.com/photo-1622445262464-84b1456045b6?auto=format&fit=crop&w=600&q=80", actual_price: 29 },
+            { id: 50, title: "قناع الذهب للوجه عيار 24 قيراط في منتجع صحي", description: "جلسة عناية فاخرة بالبشرة باستخدام رقائق الذهب الخالص لترطيب ونضارة الوجه.", category: "تجميل ورفاهية", image_url: "https://images.unsplash.com/photo-1512290900672-1f5be508b417?auto=format&fit=crop&w=600&q=80", actual_price: 400 },
+            { id: 51, title: "لوحة مفاتيح ميكانيكية كاستم (Keychron Q1 Pro)", description: "كيبورد ميكانيكي بهيكل كامل من الألمنيوم وأزرار قابلة للتبديل والتخصيص.", category: "ملحقات حاسوب", image_url: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80", actual_price: 199 },
+            { id: 52, title: "زجاجة مياه ذكية هيدريت سبارك (HidrateSpark PRO)", description: "مطارة ماء تضيء لتذكيرك بالشرب وتحسب كمية الماء المتناولة وتزامنها مع الهاتف.", category: "أدوات ذكية", image_url: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80", actual_price: 70 },
+            { id: 53, title: "علبة حلوى الدببة المطاطية هاريبو (Haribo Goldbears 100g)", description: "حلوى الجيلي الجيلاتينية الشهيرة بنكهات الفواكه المشكلة.", category: "حلويات", image_url: "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=600&q=80", actual_price: 2 },
+            { id: 54, title: "جهاز تسخين وطهي اللحوم بالماء سوس فيد (Anova Precision Cooker)", description: "جهاز طبخ حراري دقيق بالتدوير المائي لطهي اللحوم بدرجات حرارة مثالية متجانسة.", category: "أدوات مطبخ", image_url: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80", actual_price: 199 },
+            { id: 55, title: "حذاء تزلج رولر بليد احترافي (Rollerblade Twister XT)", description: "حذاء تزلج ذو هيكل صلب وعجلات عالية المرونة للسرعة والتحكم في المدن.", category: "رياضة", image_url: "https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?auto=format&fit=crop&w=600&q=80", actual_price: 279 },
+            { id: 56, title: "جهاز القراءة الإلكتروني كيندل بيبر وايت (Kindle Paperwhite)", description: "قارئ كتب إلكترونية بشاشة حبر إلكتروني مقاومة لتوهج الشمس وبطارية تدوم أسابيع.", category: "إلكترونيات", image_url: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80", actual_price: 149 },
+            { id: 57, title: "علبة بسكويت أوريو كلاسيكي (Oreo 154g)", description: "بسكويت الكاكاو المحشو بكريمة الفانيليا اللذيذة.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=600&q=80", actual_price: 2 },
+            { id: 58, title: "جهاز تدليك العضلات الاحترافي ثيراجان برو (Theragun PRO)", description: "مسدس تدليك إيقاعي عميق للرياضيين لتخفيف آلام وتشنجات العضلات وتسريع الاستشفاء.", category: "صحة ورياضة", imageurl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80", actual_price: 599 },
+            { id: 59, title: "طقم سكاكين ستيك فاخر لاغيول (Laguiole en Aubrac 6 Pieces)", description: "مجموعة سكاكين مائدة فرنسية يدوية الصنع بمقابض من خشب الزيتون النادر.", category: "أدوات فاخرة", image_url: "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=600&q=80", actual_price: 450 },
+            { id: 60, title: "حزام غوتشي جلدي بشعار الماركة الذهبي (Gucci GG Leather Belt)", description: "حزام جلد طبيعي فاخر مع إبزيم معدني بشعار الدار الإيطالية العريقة.", category: "موضة وأزياء", image_url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80", actual_price: 490 },
+            { id: 61, title: "وجبة كبسة لحم ضأن طازجة لشخصين", description: "أرز بسمتي متبل بالبهارات الخليجية والمكسرات مع لحم الضأن المطهو على نار هادئة.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80", actual_price: 28 },
+            { id: 62, title: "طابعة ثلاثية الأبعاد بامبو لاب (Bambu Lab X1-Carbon)", description: "طابعة مجسمات ثلاثية الأبعاد فائقة السرعة ومتعددة الألوان مع ذكاء اصطناعي لرصد الأخطاء.", category: "تقنية وصناعة", image_url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80", actual_price: 1449 },
+            { id: 63, title: "سكوتر كهربائي شاومي برو 4 (Xiaomi Electric Scooter 4 Pro)", description: "سكوتر ذكي قابل للطي يقطع مسافة تصل إلى 55 كم بشحنة واحدة.", category: "تنقل ذكي", image_url: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=600&q=80", actual_price: 799 },
+            { id: 64, title: "قداحة زيبو كلاسيكية نحاسية (Zippo Windproof Lighter)", description: "ولاعة أمريكية معدنية كلاسيكية مقاومة للرياح وتعمل بالبنزين.", category: "إكسسوارات", image_url: "https://images.unsplash.com/photo-1519751138087-5bf79df62d5b?auto=format&fit=crop&w=600&q=80", actual_price: 25 },
+            { id: 65, title: "لابتوب أبل ماك بوك برو 16 بوصة M3 Max", description: "حاسوب محمول فائق القوة للمحترفين بذاكرة عملاقة وشاشة Liquid Retina XDR.", category: "حواسيب متطورة", image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80", actual_price: 3499 },
+            { id: 66, title: "فطر الكمأة الأسود الطازج 100 جرام (Fresh Black Truffle)", description: "أحد أندر وأغلى الفطريات البرية في العالم المستخدمة لإضافة نكهة عطرية فاخرة للطعام.", category: "أطعمة نادرة", image_url: "https://images.unsplash.com/photo-1509358271058-acd22cc93898?auto=format&fit=crop&w=600&q=80", actual_price: 180 },
+            { id: 67, title: "مظلة مقاومة للعواصف والأعاصير (Blunt Classic Umbrella)", description: "مظلة قوية بتصميم هوائي وتوزيع ضغط يتحمل رياح قوية دون أن تنقلب.", category: "أدوات يومية", image_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80", actual_price: 99 },
+            { id: 68, title: "جهاز بلايستيشن 5 مع محرك أقراص (PlayStation 5 Slim)", description: "منصة ألعاب الفيديو الشهيرة من سوني مع يد تحكم تفاعلية DualSense.", category: "ألعاب فيديو", image_url: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=600&q=80", actual_price: 499 },
+            { id: 69, title: "كرواسون فرنسي طازج بالزبدة الطبيعية", description: "معجنات فرنسية هشة ومقرمشة بطبقات الزبدة الذهبية.", category: "مخبوزات", image_url: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80", actual_price: 4 },
+            { id: 70, title: "قفل دراجة هوائية فولاذي فائق الأمان (Kryptonite New York Fahgettaboudit)", description: "أقوى قفل على شكل حرف U مصنوع من الفولاذ المقسى بقطر 18 مم لمقاومة محاولات القص.", category: "حماية وأمان", image_url: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=600&q=80", actual_price: 140 },
+            { id: 71, title: "كاميرا تصوير رقمية احترافية سوني ألفا (Sony A7 IV Body)", description: "كاميرا فل فريم للتصوير الفوتوغرافي والفيديو السينمائي بدقة 33 ميجابكسل.", category: "تصوير احترافي", image_url: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80", actual_price: 2498 },
+            { id: 72, title: "شاحن متنقل أنكر 24000 مللي أمبير 140W (Anker 737 Power Bank)", description: "بنك طاقة فائق السرعة بشاشة رقمية ذكية يشحن اللابتوب والهاتف معاً في وقت قياسي.", category: "إلكترونيات", image_url: "https://images.unsplash.com/photo-1609592426868-a4ca1b2ca61a?auto=format&fit=crop&w=600&q=80", actual_price: 149 },
+            { id: 73, title: "علبة عصير برتقال طبيعي 1 لتر", description: "عصير برتقال طازج 100% بدون سكر مضاف أو مواد حافظة.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=600&q=80", actual_price: 4 },
+            { id: 74, title: "جهاز تسوية وتثبيت الكاميرا دي جي آي رونين (DJI RS 3 Pro Gimbal)", description: "مانع اهتزاز احترافي ثلاثي المحاور لكاميرات السينما لإنتاج لقطات سينمائية ناعمة.", category: "معدات تصوير", image_url: "https://images.unsplash.com/photo-1589872307379-0ffdf9829123?auto=format&fit=crop&w=600&q=80", actual_price: 869 },
+            { id: 75, title: "ساعة يد كاسيو جي شوك الأصلية (Casio G-Shock DW5600)", description: "الساعة العسكرية الرقمية الأسطورية المقاومة للصدمات والماء حتى عمق 200 متر.", category: "ساعات", image_url: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=600&q=80", actual_price: 60 },
+            { id: 76, title: "علبة زعفران نقي سوبر نقين 10 جرام", description: "خيوط الزعفران الأحمر الفاخر ذو الرائحة العطرية القوية المستخدم في الطهي والحلويات.", category: "بهارات نادرة", image_url: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=600&q=80", actual_price: 45 },
+            { id: 77, title: "فرشاة أسنان كهربائية ذكية أورال بي (Oral-B iO Series 9)", description: "فرشاة أسنان رقمية مع حساس ضغط وتطبيق متصل بالذكاء الاصطناعي لتغطية الأسنان كاملة.", category: "عناية وصحة", image_url: "https://images.unsplash.com/photo-1559591937-e1050a4f5fba?auto=format&fit=crop&w=600&q=80", actual_price: 299 },
+            { id: 78, title: "وسادة طبية ميموري فوم مبردة (Tempur-Pedic Cloud Pillow)", description: "وسادة فاخرة تتشكل حسب وضعية الرقبة والرأس مع طبقة جل للتبريد أثناء النوم.", category: "منزل ونوم", image_url: "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=600&q=80", actual_price: 189 },
+            { id: 79, title: "قطعة دونات مغطاة بالشوكولاتة الملونة", description: "حلوى الدونات المقلية والهشة المحشوة بالكريمة والمزينة بقطع السكاكر.", category: "حلويات", image_url: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80", actual_price: 3 },
+            { id: 80, title: "ميكروفون تسجيل وبودكاست شور (Shure SM7B)", description: "الميكروفون الديناميكي الأكثر شهرة في استوديوهات البث الصوتي وتسجيل الأغاني.", category: "معدات صوتية", image_url: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80", actual_price: 399 },
+            { id: 81, title: "جهاز تسخين وتدليك العيون الذكي (Renpho Eye Massager)", description: "قناع تدليك ذكي بتقنية الضغط الهوائي والحرارة والموسيقى لتخفيف إجهاد الشاشات والصداع.", category: "عناية ذكية", image_url: "https://images.unsplash.com/photo-1512290900672-1f5be508b417?auto=format&fit=crop&w=600&q=80", actual_price: 69 },
+            { id: 82, title: "بطاقة بوكيمون نادرة تشاريزارد الإصدار الأول (Charizard 1st Edition PSA 10)", description: "بطاقة تجميع نادرة جداً ومقيمة بأعلى درجة حفظ، بيعت بمبالغ قياسية في المزادات العالمية.", category: "مقتنيات نادرة", image_url: "https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?auto=format&fit=crop&w=600&q=80", actual_price: 300000 },
+            { id: 83, title: "سلة فواكه أفوكادو طازج 1 كجم", description: "حبات أفوكادو هاس طازجة وغنية بالدهون الصحية لصنع السلطات وتوست الإفطار.", category: "أطعمة طازجة", image_url: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=600&q=80", actual_price: 7 },
+            { id: 84, title: "قلم تحديد نصوص فوسفوري هايلايتر (Stabilo Boss)", description: "قلم تمييز النصوص للدراسة والكتب بحبر مائي لا يجف سريعاً.", category: "قرطاسية", image_url: "https://images.unsplash.com/photo-1585336261026-70e6089d7fa1?auto=format&fit=crop&w=600&q=80", actual_price: 2 },
+            { id: 85, title: "محطة طاقة محمولة للتخييم إيكوفلو (EcoFlow Delta 2 1024Wh)", description: "بطارية ضخمة للمخيمات والطوارئ بقدرة تشغيل أجهزة المطبخ والأدوات الكهربائية الثقيلة.", category: "تخييم وطاقة", image_url: "https://images.unsplash.com/photo-1609592426868-a4ca1b2ca61a?auto=format&fit=crop&w=600&q=80", actual_price: 999 },
+            { id: 86, title: "سجادة يوجا فاخرة غير قابلة للانزلاق (Lululemon The Mat 5mm)", description: "سجادة تمارين رياضية مبطنة بقاعدة مطاطية طبيعية لامتصاص العرق والثبات التام.", category: "لياقة ورياضة", image_url: "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?auto=format&fit=crop&w=600&q=80", actual_price: 98 },
+            { id: 87, title: "علبة رقائق تورتيلا ناتشوز دوريتوس (Doritos 170g)", description: "شيبس الذرة المقرمش بنكهة جبنة الناتشو الشهيرة.", category: "أطعمة خفيفة", image_url: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=600&q=80", actual_price: 3 },
+            { id: 88, title: "ساعة ذكية أبل واتش ألترا 2 (Apple Watch Ultra 2)", description: "ساعة رياضية ذكية بهيكل من التيتانيوم وشاشة فائقة السطوع وبوصلة مخصصة للمغامرات.", category: "ساعات ذكية", image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80", actual_price: 799 },
+            { id: 89, title: "جهاز تسخين التوست كيتشن إيد (KitchenAid 2-Slice Toaster)", description: "محمصة خبز معدنية فاخرة بفتحات عريضة وتحكم دقيق في درجات التحمير.", category: "أجهزة مطبخ", image_url: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80", actual_price: 89 },
+            { id: 90, title: "كيس قهوة بذور بن مختصة إثيوبية 250 جرام", description: "حبوب بن أرابيكا محمصة بحرفية بإيحاءات الفواكه المجففة والزهور العطرية.", category: "قهوة ومشروبات", image_url: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=600&q=80", actual_price: 20 },
+            { id: 91, title: "مقبض تحكم الألعاب برو سوني (DualSense Edge Wireless Controller)", description: "يد تحكم احترافية قابلة لتخصيص الأزرار وتبديل العصي ومحفزات خلفية قابلة للضبط.", category: "ألعاب فيديو", image_url: "https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=600&q=80", actual_price: 199 },
+            { id: 92, title: "مرآة حمام ذكية بإضاءة LED ومزيل ضباب (Smart Vanity Mirror)", description: "مرآة دائرية تعمل باللمس وتمنع تكثف البخار بعد الاستحمام مع سماعة بلوتوث مدمجة.", category: "منزل وديكور", image_url: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80", actual_price: 230 },
+            { id: 93, title: "علبة بطاطس مقلية كلاسيكية كبيرة من مطعم سريع", description: "أصابع بطاطا مقلية مقرمشة ومملحة تقدم ساخنة مع الكاتشب.", category: "أطعمة ومشروبات", image_url: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=600&q=80", actual_price: 4 },
+            { id: 94, title: "جهاز قياس ضغط الإطارات الرقمي المحمول للسيارات (AstroAI Gauge)", description: "أداة قياس دقيقة لضغط هواء عجلات السيارات والدراجات بشاشة رقمية مضيئة.", category: "ملحقات سيارات", image_url: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80", actual_price: 16 },
+            { id: 95, title: "خوذة دراجة نارية احترافية كربون فايبر (Shoei X-Fifteen)", description: "خوذة سباقات ألياف الكربون فائقة الخفة والأمان مع ديناميكا هوائية متطورة لعزل الهواء.", category: "معدات دراجات", image_url: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=600&q=80", actual_price: 899 },
+            { id: 96, title: "حذاء كعب عالي لوبوتان سول أحمر (Christian Louboutin Kate 100mm)", description: "حذاء نسائي فاخر من الجلد اللامع بالنعل الأحمر الأيقوني الشهير لدار لوبوتان.", category: "موضة فاخرة", image_url: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80", actual_price: 795 },
+            { id: 97, title: "ساندويتش برجر بالذهب عيار 24 قيراط في دبي", description: "برجر لحم أنجوس فاخر مغطى بالكامل بورق الذهب الخالص القابل للأكل مع جبن الماعز.", category: "أطعمة وغرائب", image_url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80", actual_price: 100 },
+            { id: 98, title: "مظلة شمسية للزجاج الأمامي للسيارة قابلة للطي", description: "حاجب شمس بتصميم شمسية عاكس للحرارة يحمي مقصورة السيارة من حرارة الصيف.", category: "ملحقات سيارات", image_url: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80", actual_price: 25 },
+            { id: 99, title: "حاسوب محمول مكتبي متكامل آبل آي ماك 24 بوصة (iMac M3)", description: "حاسوب مكتبي شاشة شاملة نحيفة جداً بدقة 4.5K Retina ومكبرات صوت محيطية.", category: "أجهزة حاسوب", image_url: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80", actual_price: 1299 },
+            { id: 100, title: "علبة مسكن آلام باراسيتامول / بنادول 24 قرص", description: "دواء كلاسيكي لتخفيف الصداع وخفض الحرارة وتسكين الآلام الخفيفة.", category: "أدوية وصحة", image_url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80", actual_price: 5 }
+        ];
+
+        // State
+        let state = {
+            numRounds: 5,
+            numPlayers: 3,
+            players: [],
+            gameDeck: [],
+            currentRound: 0,
+            currentPlayerIndex: 0,
+            currentProduct: null,
+            guessesThisRound: [], // {playerName, guess}
+            timerInterval: null
+        };
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSfx(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if(type === 'tick') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'type') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'reveal') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'win') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                setTimeout(() => {
+                    const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
+                    o2.connect(g2); g2.connect(audioCtx.destination);
+                    o2.type = 'sine'; o2.frequency.setValueAtTime(659.25, audioCtx.currentTime);
+                    g2.gain.setValueAtTime(0.1, audioCtx.currentTime); g2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    o2.start(); o2.stop(audioCtx.currentTime + 0.5);
+                }, 150);
+            }
+        }
+
+        // Navigation
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Setup
+        function adjRounds(n) {
+            state.numRounds += n;
+            if(state.numRounds < 5) state.numRounds = 5;
+            if(state.numRounds > 20) state.numRounds = 20;
+            document.getElementById('val-rounds').innerText = state.numRounds;
+        }
+
+        function adjPlayers(n) {
+            state.numPlayers += n;
+            if(state.numPlayers < 2) state.numPlayers = 2;
+            if(state.numPlayers > 10) state.numPlayers = 10;
+            document.getElementById('val-players').innerText = state.numPlayers;
+        }
+
+        function goToNames() {
+            showScreen('screen-names');
+            const list = document.getElementById('names-list');
+            list.innerHTML = '';
+            for(let i=0; i<state.numPlayers; i++) {
+                list.innerHTML += `<input type="text" class="name-input" id="pname-${i}" placeholder="اللاعب ${i+1}" />`;
+            }
+        }
+
+        function startGame() {
+            state.players = [];
+            for(let i=0; i<state.numPlayers; i++) {
+                let name = document.getElementById(`pname-${i}`).value.trim();
+                if(!name) name = `اللاعب ${i+1}`;
+                state.players.push({ name, score: 0, exactMatches: 0, sniperHits: 0 });
+            }
+            
+            // Shuffle and pick products
+            let shuffled = [...PRODUCTS].sort(() => 0.5 - Math.random());
+            state.gameDeck = shuffled.slice(0, state.numRounds);
+            
+            state.currentRound = 0;
+            startRound();
+        }
+
+        function startRound() {
+            state.currentProduct = state.gameDeck[state.currentRound];
+            state.guessesThisRound = [];
+            state.currentPlayerIndex = 0;
+            prepareNextPlayer();
+        }
+
+        function prepareNextPlayer() {
+            if (state.currentPlayerIndex >= state.players.length) {
+                // All guessed, reveal time
+                doReveal();
+                return;
+            }
+            // Show Pass screen
+            let playerName = state.players[state.currentPlayerIndex].name;
+            document.getElementById('pass-player-name').innerText = playerName;
+            
+            // Clear input for safety
+            currentInputValue = "";
+            updatePriceDisplay();
+
+            showScreen('screen-pass');
+        }
+
+        // Guessing mechanics
+        let currentInputValue = "";
+        
+        function typeNum(n) {
+            if(currentInputValue.length < 9) {
+                if(currentInputValue === "0") currentInputValue = n.toString();
+                else currentInputValue += n.toString();
+                updatePriceDisplay();
+                playSfx('type');
+                if(navigator.vibrate) navigator.vibrate(20);
+            }
+        }
+        
+        function deleteNum() {
+            currentInputValue = currentInputValue.slice(0, -1);
+            if(currentInputValue === "") currentInputValue = "0";
+            updatePriceDisplay();
+            playSfx('type');
+        }
+
+        function updatePriceDisplay() {
+            document.getElementById('price-input').innerText = currentInputValue === "" ? "0" : Number(currentInputValue).toLocaleString();
+        }
+
+        function startGuessing() {
+            showScreen('screen-guess');
+            document.getElementById('prod-img').src = state.currentProduct.image_url;
+            document.getElementById('prod-title').innerText = state.currentProduct.title;
+            document.getElementById('prod-desc').innerText = state.currentProduct.description;
+            currentInputValue = "0";
+            updatePriceDisplay();
+
+            // Timer
+            let timeLeft = 20;
+            const bar = document.getElementById('timer-bar');
+            bar.style.width = '100%';
+            bar.style.background = 'var(--success)';
+            
+            clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                timeLeft--;
+                let pct = (timeLeft / 20) * 100;
+                bar.style.width = `${pct}%`;
+                
+                if (timeLeft <= 5) {
+                    bar.style.background = 'var(--danger)';
+                    playSfx('tick');
+                    if(navigator.vibrate) navigator.vibrate(50);
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(state.timerInterval);
+                    submitGuess(true); // timeout = 0
+                }
+            }, 1000);
+        }
+
+        function submitGuess(isTimeout = false) {
+            clearInterval(state.timerInterval);
+            let val = parseInt(currentInputValue) || 0;
+            if(isTimeout) val = 0;
+
+            state.guessesThisRound.push({
+                player: state.players[state.currentPlayerIndex],
+                guess: val
+            });
+
+            // Prevent double click
+            const btn = document.querySelector('.numpad-action');
+            btn.disabled = true;
+            setTimeout(() => { btn.disabled = false; }, 500);
+
+            state.currentPlayerIndex++;
+            prepareNextPlayer();
+        }
+
+        // Reveal Phase
+        function doReveal() {
+            showScreen('screen-reveal');
+            document.getElementById('btn-next-round').style.display = 'none';
+            document.getElementById('actual-price-reveal').style.display = 'none';
+            
+            const list = document.getElementById('guesses-list');
+            list.innerHTML = '';
+            
+            // Sort guesses by value to build tension
+            let sortedGuesses = [...state.guessesThisRound].sort((a,b) => a.guess - b.guess);
+            
+            sortedGuesses.forEach((g, idx) => {
+                let div = document.createElement('div');
+                div.className = 'guess-card';
+                div.id = `guess-card-${idx}`;
+                div.innerHTML = `
+                    <div style="font-weight:800; font-size:18px;">${g.player.name}</div>
+                    <div style="font-weight:900; font-size:24px; color:white;">${g.guess.toLocaleString()}$</div>
+                    <div class="points-badge" style="display:none; background:var(--accent); color:black; padding:2px 8px; border-radius:10px; font-weight:bold; font-size:12px;"></div>
+                `;
+                list.appendChild(div);
+            });
+
+            // Drumroll wait
+            setTimeout(() => {
+                playSfx('reveal');
+                if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+                
+                const reveal = document.getElementById('actual-price-reveal');
+                reveal.innerText = `${state.currentProduct.actual_price.toLocaleString()}$`;
+                reveal.style.display = 'block';
+                reveal.style.animation = 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                
+                calculateAndShowPoints(sortedGuesses);
+            }, 2000);
+        }
+
+        function calculateAndShowPoints(sortedGuesses) {
+            let actual = state.currentProduct.actual_price;
+            
+            // Calculate absolute diff for all guesses
+            sortedGuesses.forEach(g => {
+                g.diff = Math.abs(g.guess - actual);
+            });
+            
+            setTimeout(() => {
+                // Find minimum diff
+                let minDiff = sortedGuesses.reduce((min, curr) => curr.diff < min ? curr.diff : min, Infinity);
+                let winners = sortedGuesses.filter(g => g.diff === minDiff);
+                
+                winners.forEach(w => {
+                    let pIndex = sortedGuesses.indexOf(w);
+                    let badgeText = "";
+                    
+                    if (w.diff === 0) { // exact match
+                        w.player.score += 30;
+                        w.player.exactMatches++;
+                        badgeText = "تطابق تام! (+30)";
+                        document.getElementById(`guess-card-${pIndex}`).classList.add('exact');
+                        playSfx('win');
+                    } else {
+                        let percentDiff = (w.diff / actual) * 100;
+                        if (percentDiff <= 5) { // sniper (within 5%)
+                            w.player.score += 20; 
+                            w.player.sniperHits++;
+                            badgeText = "قناص! (+20)";
+                            playSfx('win');
+                        } else {
+                            w.player.score += 15;
+                            badgeText = "الأقرب (+15)";
+                        }
+                    }
+                    highlightWinner(pIndex, badgeText);
+                });
+
+                // Gray out losers
+                sortedGuesses.forEach((g, i) => {
+                    if(!document.getElementById(`guess-card-${i}`).classList.contains('winner') && !document.getElementById(`guess-card-${i}`).classList.contains('exact')) {
+                        document.getElementById(`guess-card-${i}`).classList.add('over');
+                    }
+                });
+
+                document.getElementById('btn-next-round').style.display = 'block';
+
+            }, 1000);
+        }
+
+        function highlightWinner(index, text) {
+            const card = document.getElementById(`guess-card-${index}`);
+            card.classList.add('winner');
+            const badge = card.querySelector('.points-badge');
+            badge.style.display = 'block';
+            badge.innerText = text;
+        }
+
+        function nextRoundAction() {
+            state.currentRound++;
+            if (state.currentRound >= state.numRounds) {
+                endGame();
+            } else {
+                startRound();
+            }
+        }
+
+        function endGame() {
+            showScreen('screen-podium');
+            
+            let sorted = [...state.players].sort((a,b) => b.score - a.score);
+            let podium = document.getElementById('podium-container');
+            podium.innerHTML = '';
+            
+            // Build podium (2nd, 1st, 3rd)
+            const places = [1, 0, 2]; // visual order
+            places.forEach((i, idx) => {
+                if (sorted[i]) {
+                    let rankClass = `rank-${i+1}`;
+                    let crownHtml = i === 0 ? '<div class="crown">👑</div>' : '';
+                    podium.innerHTML += `
+                        <div class="podium-place ${rankClass}" style="animation-delay: ${0.2 * idx}s">
+                            ${crownHtml}
+                            <div class="podium-score">${sorted[i].score}</div>
+                            <div class="podium-bar">${i+1}</div>
+                            <div class="podium-name">${sorted[i].name}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            // Stats
+            let bestExact = [...state.players].sort((a,b) => b.exactMatches - a.exactMatches)[0];
+            let bestSniper = [...state.players].sort((a,b) => b.sniperHits - a.sniperHits)[0];
+            
+            document.getElementById('stats-card').innerHTML = `
+                <h3 style="color:var(--accent); margin-bottom:15px;">إحصائيات ممتعة 📊</h3>
+                <p>أكثر تطابق تام: <strong>${bestExact && bestExact.exactMatches > 0 ? bestExact.name : 'لا أحد'}</strong></p>
+                <p>قناص الجلسة: <strong>${bestSniper && bestSniper.sniperHits > 0 ? bestSniper.name : 'لا أحد'}</strong></p>
+            `;
+            
+            playSfx('win');
+        }
+        
+    </script>
+<script>
+function confirmExit() { let modal = document.getElementById('custom-exit-modal'); if (!modal) { modal = document.createElement('div'); modal.id = 'custom-exit-modal'; modal.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:100000; display:flex; justify-content:center; align-items:center;"><div style="background:#1e293b; padding:30px; border-radius:24px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"><div style="font-size:50px; margin-bottom:10px; line-height:1;">🚪</div><h3 style="color:white; font-size:24px; font-weight:900; font-family:\'Tajawal\', sans-serif; margin-bottom:10px;">تأكيد الخروج</h3><p style="color:#94a3b8; font-size:16px; font-family:\'Tajawal\', sans-serif; margin-bottom:25px; line-height:1.5;">هل أنت متأكد من رغبتك بالخروج؟<br>سيتم فقدان التقدم الحالي في اللعبة.</p><div style="display:flex; gap:12px; justify-content:center;"><button onclick="window.location.href=\'../lobby.html\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#ef4444; color:white; box-shadow:0 6px 0 #b91c1c; transition:all 0.2s;">نعم، خروج</button><button onclick="document.getElementById(\'custom-exit-modal\').style.display=\'none\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#475569; color:white; box-shadow:0 6px 0 #334155; transition:all 0.2s;">إلغاء</button></div></div></div><style>@keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } } #custom-exit-modal button:active { transform: translateY(4px); box-shadow: none !important; }</style>'; document.body.appendChild(modal); } modal.style.display = 'flex'; }
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <link rel="stylesheet" href="../css/theme-override.css">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
@@ -119,13 +120,14 @@
 .top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
 .top-btn:hover { background: rgba(255,255,255,0.2); }
   </style>
+<script src="../js/protection.js"></script>
 </head>
 <body>
   <div class="top-bar">
     <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
     
-    <a href="https://discord.gg/REST1" target="_blank" class="top-btn support-btn">الدعم الفني 🛠️</a>
-  </div>
+    <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">المافيا — رفيق</div>
+</div>
   
 
   <div class="main-container">
@@ -331,11 +333,7 @@
 
   <script>
     // Confirmation before exit
-    function confirmExit() {
-      if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
-        window.location.href = '../lobby.html';
-      }
-    }
+    
 
     let state = {
       players: 7,
@@ -973,6 +971,9 @@
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
   </script>
 
-  </body>
+  <script>
+function confirmExit() { let modal = document.getElementById('custom-exit-modal'); if (!modal) { modal = document.createElement('div'); modal.id = 'custom-exit-modal'; modal.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:100000; display:flex; justify-content:center; align-items:center;"><div style="background:#1e293b; padding:30px; border-radius:24px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"><div style="font-size:50px; margin-bottom:10px; line-height:1;">🚪</div><h3 style="color:white; font-size:24px; font-weight:900; font-family:\'Tajawal\', sans-serif; margin-bottom:10px;">تأكيد الخروج</h3><p style="color:#94a3b8; font-size:16px; font-family:\'Tajawal\', sans-serif; margin-bottom:25px; line-height:1.5;">هل أنت متأكد من رغبتك بالخروج؟<br>سيتم فقدان التقدم الحالي في اللعبة.</p><div style="display:flex; gap:12px; justify-content:center;"><button onclick="window.location.href=\'../lobby.html\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#ef4444; color:white; box-shadow:0 6px 0 #b91c1c; transition:all 0.2s;">نعم، خروج</button><button onclick="document.getElementById(\'custom-exit-modal\').style.display=\'none\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#475569; color:white; box-shadow:0 6px 0 #334155; transition:all 0.2s;">إلغاء</button></div></div></div><style>@keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } } #custom-exit-modal button:active { transform: translateY(4px); box-shadow: none !important; }</style>'; document.body.appendChild(modal); } modal.style.display = 'flex'; }
+</script>
+</body>
 
 </html>

@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <link rel="stylesheet" href="../css/theme-override.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ركّبها</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --primary: #4f46e5;
+      --secondary: #ec4899;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --card-bg: rgba(30, 41, 59, 0.7);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .game-container {
+      flex: 1; display: flex; flex-direction: column;
+      padding: 80px 20px 20px; max-width: 800px; margin: 0 auto; width: 100%;
+      padding-bottom: 100px !important; 
+    }
+
+    .screen {
+      display: none; flex-direction: column; flex: 1;
+      animation: fadeIn 0.4s ease; text-align: center;
+    }
+    .screen.active { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .title { font-size: 32px; font-weight: 900; margin-bottom: 20px; color: var(--accent); }
+    
+    .step-card {
+      background: var(--card-bg); border-radius: 24px; padding: 30px;
+      margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .input-group { margin-bottom: 15px; text-align: right; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #cbd5e1; }
+    .input-field {
+      width: 100%; padding: 15px; border-radius: 12px;
+      background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1);
+      color: white; font-family: 'Tajawal', sans-serif; font-size: 16px;
+      transition: all 0.3s;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.4); }
+
+    .btn-3d {
+      width: 100%; padding: 18px; border-radius: 20px;
+      background: var(--primary); color: white; border: none;
+      font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 900;
+      box-shadow: 0 6px 0 #3730a3; cursor: pointer;
+      transition: all 0.1s; margin-bottom: 15px;
+    }
+    .btn-3d:active { transform: translateY(6px); box-shadow: 0 0px 0 #3730a3; }
+    .btn-3d.success { background: var(--success); box-shadow: 0 6px 0 #059669; }
+    .btn-3d.success:active { box-shadow: 0 0px 0 #059669; }
+    .btn-3d.danger { background: var(--danger); box-shadow: 0 6px 0 #b91c1c; }
+    .btn-3d.danger:active { box-shadow: 0 0px 0 #b91c1c; }
+    .btn-3d:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: 0 6px 0 rgba(0,0,0,0.5) !important; }
+
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+    .top-bar > * { pointer-events: auto; }
+    .top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+    .top-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* Game Specific Styles */
+    #puzzle-board {
+      display: grid;
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 4px solid var(--primary);
+      border-radius: 12px;
+      margin: 0 auto 20px;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 400px;
+      max-height: 400px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .grid-cell {
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 1px dashed rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      position: relative;
+    }
+    .grid-cell.locked {
+      background-color: transparent !important;
+      border: 1px solid transparent;
+      pointer-events: none;
+    }
+
+    #pieces-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      min-height: 120px;
+    }
+
+    .puzzle-piece {
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      transition: transform 0.2s, border-color 0.2s;
+      background-size: 400px 400px;
+    }
+
+    .puzzle-piece:active {
+      transform: scale(0.95);
+    }
+
+    .puzzle-piece.selected {
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      transform: scale(1.05);
+      z-index: 10;
+    }
+
+    .timer-container {
+      width: 100%;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin: 15px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .timer-fill {
+      height: 100%;
+      background: var(--success);
+      width: 100%;
+      transition: width 0.1s linear, background-color 0.3s;
+    }
+
+    .preview-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--secondary);
+      color: white;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      cursor: pointer;
+      z-index: 1000;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .preview-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0px 5px rgba(0,0,0,0.5);
+    }
+
+    #preview-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: 50;
+      display: none;
+      border-radius: 8px;
+      background-color: rgba(0,0,0,0.9);
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .lives-display {
+      color: var(--danger);
+      font-size: 20px;
+    }
+
+    .timeline { text-align: right; margin-top: 20px; }
+    .timeline-item { 
+      background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 15px; margin-bottom: 15px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+  </style>
+<script src="../js/protection.js"></script>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">ركّبها</div>
+  </div>
+
+  <div class="game-container">
+    
+    <!-- PHASE: SETUP -->
+    <div id="screen-setup" class="screen active">
+      <h1 class="title">إعداد اللعبة ⚙️</h1>
+      <div class="step-card">
+        <div class="input-group">
+          <label>عدد اللاعبين (2-10)</label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn-3d" style="width:60px; margin:0; padding:10px;" onclick="changeCount('players-count', 1, 2, 10); renderPlayerInputs();">+</button>
+            <input type="number" id="players-count" class="input-field" value="2" min="2" max="10" readonly style="text-align:center; font-size:24px; font-weight:bold;">
+            <button class="btn-3d danger" style="width:60px; margin:0; padding:10px;" onclick="changeCount('players-count', -1, 2, 10); renderPlayerInputs();">-</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>عدد الأرواح لكل لاعب (1-3)</label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn-3d" style="width:60px; margin:0; padding:10px;" onclick="changeCount('lives-count', 1, 1, 3)">+</button>
+            <input type="number" id="lives-count" class="input-field" value="3" min="1" max="3" readonly style="text-align:center; font-size:24px; font-weight:bold;">
+            <button class="btn-3d danger" style="width:60px; margin:0; padding:10px;" onclick="changeCount('lives-count', -1, 1, 3)">-</button>
+          </div>
+        </div>
+        <div id="players-names-container">
+          <!-- Dynamic inputs -->
+        </div>
+      </div>
+      <button class="btn-3d success" onclick="showRules()">التالي ➡</button>
+    </div>
+
+    <!-- PHASE: RULES -->
+    <div id="screen-rules" class="screen">
+      <h1 class="title">طريقة اللعب 🧩</h1>
+      <div class="step-card">
+        <p style="font-size:16px; margin-bottom:15px; line-height:1.6; text-align:right;">
+          1️⃣ <strong>تبادل الأدوار:</strong> اللعبة تُلعب بجهاز واحد بالتناوب.<br>
+          2️⃣ <strong>الهدف:</strong> ركب الصورة المبعثرة قبل ما يخلص الوقت.<br>
+          3️⃣ <strong>الخسارة:</strong> إذا خلص الوقت تخسر قلب ❤️، وإذا خلصت قلوبك تطلع من اللعبة!<br>
+          4️⃣ <strong>المعاينة:</strong> تقدر تضغط على الزر العائم وتستمر بالضغط عشان تشوف الصورة الأصلية، بس انتبه! <strong>الوقت ما يوقف</strong>.<br>
+          5️⃣ <strong>المراحل:</strong> 5 مراحل تزيد صعوبتها وعدد قطعها وتقل فيها نسبة مساعدة الخلفية الشفافة.
+        </p>
+      </div>
+      <button class="btn-3d success" style="margin-top:auto;" onclick="startGame()">فهمت، ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- PHASE: PASS PHONE -->
+    <div id="screen-pass" class="screen">
+      <h1 class="title">تبديل الأدوار 📱</h1>
+      <div class="step-card">
+        <h2 style="font-size: 40px; color: var(--accent); margin-bottom: 20px;" id="pass-player-name">الاسم</h2>
+        <p style="font-size: 18px; opacity: 0.8;">أعطِ الجوال لهذا اللاعب لاستلام دوره!</p>
+        <p style="font-size: 20px; font-weight: bold; color: var(--primary); margin-top: 15px;">المرحلة: <span id="pass-stage-name">1</span></p>
+        <div class="lives-display" id="pass-lives" style="margin-top: 15px;">❤️❤️❤️</div>
+      </div>
+      <button class="btn-3d" style="margin-top:auto;" onclick="startPlayerTurn()">استلمت الجوال، جاهز!</button>
+    </div>
+
+    <!-- PHASE: GAME -->
+    <div id="screen-game" class="screen" style="position: relative;">
+      <div class="status-bar">
+        <div id="game-player-name" style="color: var(--accent);">الاسم</div>
+        <div id="game-stage-info">المرحلة 1</div>
+        <div class="lives-display" id="game-lives">❤️❤️❤️</div>
+      </div>
+      
+      <div class="timer-container">
+        <div class="timer-fill" id="timer-bar"></div>
+      </div>
+
+      <div id="puzzle-board">
+        <div id="preview-overlay"></div>
+        <!-- Grid cells injected here -->
+      </div>
+
+      <div id="pieces-container">
+        <!-- Puzzle pieces injected here -->
+      </div>
+      
+      <button class="preview-btn" id="btn-preview" title="معاينة الصورة">👁️</button>
+    </div>
+
+    <!-- PHASE: RESULTS -->
+    <div id="screen-results" class="screen">
+      <h1 class="title" style="color:white;">النتائج النهائية 🏆</h1>
+      
+      <div id="results-winner" style="margin-bottom: 30px; font-size: 24px; font-weight: 900; color: var(--accent);"></div>
+      
+      <div class="timeline" id="timeline-container">
+        <!-- Injected via JS -->
+      </div>
+
+      <button class="btn-3d" style="margin-top:30px;" onclick="window.location.reload()">لعبة جديدة 🔄</button>
+    </div>
+
+  </div>
+
+  <script>
+    const puzzleImages = [
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1511497584788-87676104235f?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=800&fit=crop"
+    ];
+
+    // Game Configuration
+    const STAGES = [
+      { level: 1, cols: 3, rows: 3, bgOpacity: 0.3, time: 45 },
+      { level: 2, cols: 4, rows: 3, bgOpacity: 0.2, time: 60 },
+      { level: 3, cols: 4, rows: 4, bgOpacity: 0.1, time: 75 },
+      { level: 4, cols: 5, rows: 4, bgOpacity: 0.05, time: 90 },
+      { level: 5, cols: 5, rows: 5, bgOpacity: 0, time: 100 }
+    ];
+
+    let players = [];
+    let currentPlayerIndex = 0;
+    let currentStage = 1; // 1 to 5
+    let isSuddenDeath = false;
+    let suddenDeathTime = 60; // 60 -> 45 -> 30...
+
+    let selectedPieceIndex = null;
+    let placedPieces = 0;
+    let totalPieces = 0;
+    
+    let timerInterval = null;
+    let timeLeft = 0;
+    let totalTime = 0;
+    
+    let currentImageIndex = -1;
+    let clickTimeout = null;
+
+    // --- Sound Effects System ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration, vol=0.1) {
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    const sfx = {
+      click: () => playTone(600, 'sine', 0.1, 0.05),
+      success: () => { playTone(500, 'sine', 0.1, 0.05); setTimeout(()=>playTone(800, 'sine', 0.2, 0.05), 100); },
+      error: () => playTone(150, 'sawtooth', 0.3, 0.05),
+      tick: () => playTone(800, 'square', 0.05, 0.02),
+      win: () => { [400, 500, 600, 800].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.2, 0.05), i*150)); },
+      lose: () => { [300, 250, 200, 150].forEach((f, i) => setTimeout(() => playTone(f, 'sawtooth', 0.3, 0.05), i*200)); }
+    };
+
+    function changeCount(id, delta, min, max) {
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      sfx.click();
+      const input = document.getElementById(id);
+      let val = parseInt(input.value) || min;
+      val += delta;
+      if(val > max) val = max;
+      if(val < min) val = min;
+      input.value = val;
+    }
+
+    // Initialize Setup
+    function renderPlayerInputs() {
+      let count = parseInt(document.getElementById('players-count').value) || 2;
+      count = Math.max(2, Math.min(10, count)); // limit 2-10
+      const container = document.getElementById('players-names-container');
+      
+      const currentInputs = Array.from(container.querySelectorAll('.player-name-input')).map(inp => inp.value);
+      container.innerHTML = '';
+      for(let i=0; i<count; i++) {
+        const val = currentInputs[i] || '';
+        container.innerHTML += `
+          <div class="input-group">
+            <input type="text" class="input-field player-name-input" placeholder="اسم اللاعب ${i+1}" value="${val}" required>
+          </div>
+        `;
+      }
+    }
+    renderPlayerInputs();
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-'+id).classList.add('active');
+    }
+
+    function showRules() {
+      showScreen('rules');
+    }
+
+    function startGame() {
+      const inputs = document.querySelectorAll('.player-name-input');
+      const maxLives = parseInt(document.getElementById('lives-count').value) || 3;
+      
+      players = Array.from(inputs).map((inp, i) => ({
+        id: i,
+        name: inp.value.trim() || `اللاعب ${i+1}`,
+        lives: Math.min(3, Math.max(1, maxLives)),
+        active: true
+      }));
+
+      currentPlayerIndex = 0;
+      currentStage = 1;
+      isSuddenDeath = false;
+      suddenDeathTime = 60;
+      
+      showPassScreen();
+    }
+
+    function getActivePlayers() {
+      return players.filter(p => p.active);
+    }
+
+    function getLivesHTML(lives) {
+      return "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+    }
+
+    function showPassScreen() {
+      const activePlayers = getActivePlayers();
+      if (activePlayers.length === 0) {
+        endGame();
+        return;
+      }
+      
+      // Ensure current player is active
+      while(!players[currentPlayerIndex].active) {
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      }
+
+      const player = players[currentPlayerIndex];
+      document.getElementById('pass-player-name').textContent = player.name;
+      document.getElementById('pass-lives').innerHTML = getLivesHTML(player.lives);
+      
+      let stageText = `المرحلة ${currentStage}`;
+      if (isSuddenDeath) stageText = `جولة الحسم (${suddenDeathTime} ثانية)`;
+      document.getElementById('pass-stage-name').textContent = stageText;
+
+      showScreen('pass');
+    }
+
+    function startPlayerTurn() {
+      const player = players[currentPlayerIndex];
+      document.getElementById('game-player-name').textContent = player.name;
+      document.getElementById('game-lives').innerHTML = getLivesHTML(player.lives);
+      
+      let stageConfig;
+      if (isSuddenDeath) {
+        stageConfig = { level: 'SD', cols: 5, rows: 5, bgOpacity: 0, time: suddenDeathTime };
+        document.getElementById('game-stage-info').textContent = "جولة الحسم ☠️";
+      } else {
+        stageConfig = STAGES[currentStage - 1];
+        document.getElementById('game-stage-info').textContent = `المرحلة ${currentStage}`;
+      }
+
+      setupGameGrid(stageConfig);
+      showScreen('game');
+    }
+
+    function setupGameGrid(config) {
+      clearInterval(timerInterval);
+      
+      const board = document.getElementById('puzzle-board');
+      const container = document.getElementById('pieces-container');
+      const previewOverlay = document.getElementById('preview-overlay');
+      
+      // Use offsetWidth to calculate sizes precisely
+      const boardSize = Math.min(400, board.parentElement.offsetWidth - 40);
+      board.style.width = `${boardSize}px`;
+      board.style.height = `${boardSize}px`;
+
+      board.innerHTML = '';
+      board.appendChild(previewOverlay); // keep overlay
+      container.innerHTML = '';
+      
+      selectedPieceIndex = null;
+      placedPieces = 0;
+      totalPieces = config.cols * config.rows;
+      
+      // setup grid
+      board.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+      board.style.gridTemplateRows = `repeat(${config.rows}, 1fr)`;
+      
+      // select random image
+      let newImageIndex;
+      do {
+        newImageIndex = Math.floor(Math.random() * puzzleImages.length);
+      } while(newImageIndex === currentImageIndex && puzzleImages.length > 1);
+      currentImageIndex = newImageIndex;
+      const imageUrl = puzzleImages[currentImageIndex];
+
+      previewOverlay.style.backgroundImage = `url(${imageUrl})`;
+      board.style.backgroundImage = `url(${imageUrl})`;
+      board.style.backgroundSize = '100% 100%';
+      board.style.backgroundPosition = 'center';
+      
+      let pieces = [];
+      const alpha = 1 - config.bgOpacity; // Dimming the board's hint
+
+      for(let i=0; i<totalPieces; i++) {
+        const row = Math.floor(i / config.cols);
+        const col = i % config.cols;
+        
+        // Calculate background position relative to grid
+        // The background needs to be scaled up by the number of columns/rows
+        const bgSize = `${config.cols * 100}% ${config.rows * 100}%`;
+        const bgPosX = config.cols > 1 ? (col / (config.cols - 1)) * 100 : 0;
+        const bgPosY = config.rows > 1 ? (row / (config.rows - 1)) * 100 : 0;
+        const bgPos = `${bgPosX}% ${bgPosY}%`;
+
+        // Grid cell
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.dataset.index = i;
+        cell.style.backgroundColor = `rgba(0, 0, 0, ${alpha})`;
+        cell.onclick = () => handleCellClick(i);
+        
+        board.appendChild(cell);
+        
+        // Piece Data
+        pieces.push({
+          index: i,
+          bgPos: bgPos,
+          bgSize: bgSize
+        });
+      }
+      
+      // Shuffle pieces
+      pieces.sort(() => Math.random() - 0.5);
+      
+      // Render Pieces: Make them larger for better visibility
+      const pieceSize = config.cols >= 5 ? 70 : 90;
+
+      pieces.forEach(p => {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        piece.dataset.index = p.index;
+        piece.style.width = `${pieceSize}px`;
+        piece.style.height = `${pieceSize}px`;
+        piece.style.backgroundImage = `url(${imageUrl})`;
+        piece.style.backgroundSize = p.bgSize;
+        piece.style.backgroundPosition = p.bgPos;
+        piece.onclick = () => handlePieceClick(p.index, piece);
+        container.appendChild(piece);
+      });
+
+      // Timer
+      totalTime = config.time * 1000;
+      timeLeft = totalTime;
+      updateTimerUI();
+      
+      let lastSecond = Math.ceil(timeLeft / 1000);
+      timerInterval = setInterval(() => {
+        timeLeft -= 100;
+        updateTimerUI();
+        
+        let currentSecond = Math.ceil(timeLeft / 1000);
+        if (currentSecond < lastSecond && currentSecond <= 5 && currentSecond > 0) {
+          sfx.tick();
+        }
+        lastSecond = currentSecond;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          handleTimeOut();
+        }
+      }, 100);
+    }
+
+    function updateTimerUI() {
+      const timerFill = document.getElementById('timer-bar');
+      const percentage = Math.max(0, (timeLeft / totalTime) * 100);
+      timerFill.style.width = `${percentage}%`;
+      
+      if (percentage < 25) {
+        timerFill.style.backgroundColor = 'var(--danger)';
+      } else if (percentage < 50) {
+        timerFill.style.backgroundColor = 'var(--accent)';
+      } else {
+        timerFill.style.backgroundColor = 'var(--success)';
+      }
+    }
+
+    function handlePieceClick(index, pieceElement) {
+      if (timeLeft <= 0) return; // timeout lock
+      
+      // Anti-spam
+      if (clickTimeout) return;
+      clickTimeout = setTimeout(() => { clickTimeout = null; }, 100);
+
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      sfx.click();
+
+      document.querySelectorAll('.puzzle-piece').forEach(el => el.classList.remove('selected'));
+      
+      if (selectedPieceIndex === index) {
+        selectedPieceIndex = null; // deselect
+      } else {
+        selectedPieceIndex = index;
+        pieceElement.classList.add('selected');
+      }
+    }
+
+    function handleCellClick(cellIndex) {
+      if (timeLeft <= 0 || selectedPieceIndex === null) return;
+      
+      // Anti-spam
+      if (clickTimeout) return;
+      clickTimeout = setTimeout(() => { clickTimeout = null; }, 100);
+
+      const cell = document.querySelector(`.grid-cell[data-index="${cellIndex}"]`);
+      if (cell.classList.contains('locked')) return; // already solved
+
+      if (cellIndex === parseInt(selectedPieceIndex)) {
+        // Correct match
+        sfx.success();
+        const pieceEl = document.querySelector(`.puzzle-piece[data-index="${selectedPieceIndex}"]`);
+        
+        // Copy background to cell
+        cell.style.backgroundImage = pieceEl.style.backgroundImage;
+        cell.style.backgroundPosition = pieceEl.style.backgroundPosition;
+        cell.style.backgroundSize = pieceEl.style.backgroundSize;
+        cell.style.backgroundColor = 'transparent';
+        cell.classList.add('locked');
+        
+        pieceEl.remove();
+        selectedPieceIndex = null;
+        placedPieces++;
+        
+        if (placedPieces === totalPieces) {
+          clearInterval(timerInterval);
+          setTimeout(handleWin, 500);
+        }
+      } else {
+        // Wrong match -> deselect
+        sfx.error();
+        selectedPieceIndex = null;
+        document.querySelectorAll('.puzzle-piece').forEach(el => el.classList.remove('selected'));
+        
+        // Optional visual feedback for wrong click
+        cell.style.backgroundColor = 'rgba(239, 68, 68, 0.5)';
+        setTimeout(() => { cell.style.backgroundColor = 'rgba(0,0,0,0.5)'; }, 200);
+      }
+    }
+
+    function handleTimeOut() {
+      sfx.lose();
+      const player = players[currentPlayerIndex];
+      player.lives--;
+      document.getElementById('game-lives').innerHTML = getLivesHTML(player.lives);
+      
+      if (player.lives <= 0) {
+        player.active = false;
+        alert(`انتهى الوقت! ${player.name} خسر كل أرواحه وطلع من اللعبة!`);
+      } else {
+        alert(`انتهى الوقت! ${player.name} خسر قلب ❤️`);
+      }
+      
+      nextTurn();
+    }
+
+    function handleWin() {
+      // Completed stage successfully!
+      sfx.win();
+      nextTurn(true);
+    }
+
+    function nextTurn(won = false) {
+      clearInterval(timerInterval);
+      
+      const activePlayers = getActivePlayers();
+      
+      if (activePlayers.length === 0) {
+        endGame();
+        return;
+      }
+      
+      if (activePlayers.length === 1 && (currentStage > 1 || isSuddenDeath)) {
+         // Only one player remains, they are the winner (if not first round)
+         endGame();
+         return;
+      }
+
+      // Check if we need to advance stage
+      let nextPlayerIdx = (currentPlayerIndex + 1) % players.length;
+      
+      // Find next active player
+      while(!players[nextPlayerIdx].active) {
+        nextPlayerIdx = (nextPlayerIdx + 1) % players.length;
+      }
+      
+      // If we looped back to the first active player, round is over
+      let roundOver = false;
+      // Get first active player index
+      const firstActiveIdx = players.findIndex(p => p.active);
+      if (nextPlayerIdx === firstActiveIdx && (currentPlayerIndex !== nextPlayerIdx || activePlayers.length === 1)) {
+        roundOver = true;
+      }
+
+      currentPlayerIndex = nextPlayerIdx;
+
+      if (roundOver) {
+        if (!isSuddenDeath) {
+          if (currentStage < 5) {
+            currentStage++;
+          } else {
+            // Reached end of stage 5, if more than 1 player, sudden death
+            if (activePlayers.length > 1) {
+              isSuddenDeath = true;
+              suddenDeathTime = 60;
+            } else {
+              endGame();
+              return;
+            }
+          }
+        } else {
+          // In sudden death, decrease time
+          if (activePlayers.length > 1) {
+            suddenDeathTime = Math.max(10, suddenDeathTime - 15);
+          } else {
+            endGame();
+            return;
+          }
+        }
+      }
+
+      showPassScreen();
+    }
+
+    function endGame() {
+      const activePlayers = getActivePlayers();
+      const winnerDiv = document.getElementById('results-winner');
+      
+      if (activePlayers.length === 1) {
+        winnerDiv.textContent = `الفائز هو: ${activePlayers[0].name} 👑`;
+      } else if (activePlayers.length > 1) {
+        winnerDiv.textContent = `تعادل بين: ${activePlayers.map(p=>p.name).join(' و ')}!`;
+      } else {
+        winnerDiv.textContent = "الكل خسر! مفيش فايز 😢";
+      }
+
+      const timeline = document.getElementById('timeline-container');
+      timeline.innerHTML = '';
+      players.forEach(p => {
+        timeline.innerHTML += `
+          <div class="timeline-item">
+            <div>
+              <h4 style="color: ${p.active ? 'var(--success)' : 'var(--danger)'}">${p.name}</h4>
+              <p>${p.active ? 'نجا' : 'تم الإقصاء'}</p>
+            </div>
+            <div class="lives-display">${getLivesHTML(p.lives)}</div>
+          </div>
+        `;
+      });
+
+      showScreen('results');
+    }
+
+    // Preview Button Logic
+    const btnPreview = document.getElementById('btn-preview');
+    const overlay = document.getElementById('preview-overlay');
+    
+    const showPreview = (e) => { e.preventDefault(); overlay.style.display = 'block'; };
+    const hidePreview = (e) => { e.preventDefault(); overlay.style.display = 'none'; };
+    
+    btnPreview.addEventListener('mousedown', showPreview);
+    btnPreview.addEventListener('touchstart', showPreview);
+    window.addEventListener('mouseup', hidePreview);
+    window.addEventListener('touchend', hidePreview);
+
+  </script>
+
+  <script>
+    function confirmExit() { 
+      let modal = document.getElementById('custom-exit-modal'); 
+      if (!modal) { 
+        modal = document.createElement('div'); 
+        modal.id = 'custom-exit-modal'; 
+        modal.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:100000; display:flex; justify-content:center; align-items:center;"><div style="background:#1e293b; padding:30px; border-radius:24px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"><div style="font-size:50px; margin-bottom:10px; line-height:1;">🚪</div><h3 style="color:white; font-size:24px; font-weight:900; font-family:\'Tajawal\', sans-serif; margin-bottom:10px;">تأكيد الخروج</h3><p style="color:#94a3b8; font-size:16px; font-family:\'Tajawal\', sans-serif; margin-bottom:25px; line-height:1.5;">هل أنت متأكد من رغبتك بالخروج؟<br>سيتم فقدان التقدم الحالي في اللعبة.</p><div style="display:flex; gap:12px; justify-content:center;"><button onclick="window.location.href=\'../lobby.html\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#ef4444; color:white; box-shadow:0 6px 0 #b91c1c; transition:all 0.2s;">نعم، خروج</button><button onclick="document.getElementById(\'custom-exit-modal\').style.display=\'none\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#475569; color:white; box-shadow:0 6px 0 #334155; transition:all 0.2s;">إلغاء</button></div></div></div><style>@keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } } #custom-exit-modal button:active { transform: translateY(4px); box-shadow: none !important; }</style>'; 
+        document.body.appendChild(modal); 
+      } 
+      modal.style.display = 'flex'; 
+    }
+  </script>
+</body>
+</html>

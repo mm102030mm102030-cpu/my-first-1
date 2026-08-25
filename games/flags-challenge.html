@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <link rel="stylesheet" href="../css/theme-override.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>تحدي الأعلام</title>
@@ -112,11 +113,14 @@
     #judge-panel { display: none; flex-direction: column; gap: 10px; margin-top: 20px; }
     #players-judging-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px;}
   </style>
+<script src="../js/protection.js"></script>
 </head>
 <body>
   <div class="top-bar">
     <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
-  </div>
+    
+    <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">تحدي الأعلام</div>
+</div>
 
   <div class="game-container">
     
@@ -150,6 +154,17 @@
         <div id="players-names-container"></div>
       </div>
       <button class="btn" onclick="startGame()">ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- PHASE 1.5: JUDGE PREP -->
+    <div id="screen-judge-prep" class="screen">
+      <h2 style="color:var(--danger); font-size:28px; margin-bottom:20px;">سرّي للحكم فقط 🤫</h2>
+      <div class="card">
+        <p style="font-size:18px; margin-bottom:10px;">إجابة العلم القادم هي:</p>
+        <h1 id="prep-flag-name" style="font-size:40px; color:var(--success); margin-bottom: 20px;">--</h1>
+        <p style="font-size:16px; opacity:0.8; margin-bottom:10px;">تأكد أن اللاعبين لا ينظرون إلى الشاشة.</p>
+      </div>
+      <button class="btn accent" style="padding: 24px; font-size: 26px;" onclick="startReadyPlay()">اللاعبون مستعدون؟ ابدأ! 🚀</button>
     </div>
 
     <!-- PHASE 2: PLAY -->
@@ -411,11 +426,7 @@
     let isPaused = false;
     let audioCtx = null;
 
-    function confirmExit() {
-      if(confirm('هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.')) {
-        window.location.href = '../lobby.html';
-      }
-    }
+    
 
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -478,6 +489,12 @@
         shuffleArray(availableFlags);
       }
       currentFlag = availableFlags.pop();
+      
+      document.getElementById('prep-flag-name').textContent = currentFlag.name;
+      showScreen('judge-prep');
+    }
+
+    function startReadyPlay() {
       setupFlagRound();
       showScreen('play');
     }
@@ -653,5 +670,8 @@
     }
 
   </script>
+<script>
+function confirmExit() { let modal = document.getElementById('custom-exit-modal'); if (!modal) { modal = document.createElement('div'); modal.id = 'custom-exit-modal'; modal.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:100000; display:flex; justify-content:center; align-items:center;"><div style="background:#1e293b; padding:30px; border-radius:24px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"><div style="font-size:50px; margin-bottom:10px; line-height:1;">🚪</div><h3 style="color:white; font-size:24px; font-weight:900; font-family:\'Tajawal\', sans-serif; margin-bottom:10px;">تأكيد الخروج</h3><p style="color:#94a3b8; font-size:16px; font-family:\'Tajawal\', sans-serif; margin-bottom:25px; line-height:1.5;">هل أنت متأكد من رغبتك بالخروج؟<br>سيتم فقدان التقدم الحالي في اللعبة.</p><div style="display:flex; gap:12px; justify-content:center;"><button onclick="window.location.href=\'../lobby.html\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#ef4444; color:white; box-shadow:0 6px 0 #b91c1c; transition:all 0.2s;">نعم، خروج</button><button onclick="document.getElementById(\'custom-exit-modal\').style.display=\'none\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#475569; color:white; box-shadow:0 6px 0 #334155; transition:all 0.2s;">إلغاء</button></div></div></div><style>@keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } } #custom-exit-modal button:active { transform: translateY(4px); box-shadow: none !important; }</style>'; document.body.appendChild(modal); } modal.style.display = 'flex'; }
+</script>
 </body>
 </html>

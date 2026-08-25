@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <link rel="stylesheet" href="../css/theme-override.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>رفيق — الإمبوستر</title>
@@ -265,13 +266,14 @@
 .top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
 .top-btn:hover { background: rgba(255,255,255,0.2); }
   </style>
+<script src="../js/protection.js"></script>
 </head>
 <body>
   <div class="top-bar">
     <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
     
-    <a href="https://discord.gg/REST1" target="_blank" class="top-btn support-btn">الدعم الفني 🛠️</a>
-  </div>
+    <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">رفيق — الإمبوستر</div>
+</div>
   <div class="bg-impostor"></div>
   <div class="grid-overlay"></div>
 
@@ -418,12 +420,6 @@
 
   <script src="../js/auth.js"></script>
   <script>
-    function confirmExit() {
-      if(confirm("هل أنت متأكد من خروجك من اللعبة؟ سيتم فقدان التقدم الحالي.")) {
-        window.location.href = "../lobby.html";
-      }
-    }
-
     const user = requireAuth();
     if (user) {
       document.getElementById('nav-avatar').textContent = user.avatar;
@@ -431,6 +427,7 @@
     }
   </script>
 
-  </body>
+
+</body>
 
 </html>

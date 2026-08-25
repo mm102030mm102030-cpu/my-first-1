@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <link rel="stylesheet" href="../css/theme-override.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مين الصح ⚖️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1; --primary-dark: #4338ca;
+            --accent: #f59e0b; --accent-dark: #b45309;
+            --danger: #ef4444; --danger-dark: #b91c1c;
+            --success: #10b981; --success-dark: #047857;
+            --bg: #1e1b4b; --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: var(--bg); background-image: radial-gradient(circle at top left, #312e81 0%, transparent 70%);
+            min-height: 100vh; color: white; display: flex; flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .screen { display: none; flex: 1; flex-direction: column; padding: 20px 15px; max-width: 600px; margin: 0 auto; width: 100%; }
+        .screen.active { display: flex; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Typography */
+        h1 { font-size: 2.2rem; text-align: center; margin-bottom: 15px; text-shadow: 0 4px 15px rgba(0,0,0,0.5); font-weight: 900; }
+        h2 { font-size: 1.6rem; text-align: center; margin-bottom: 12px; color: #a5b4fc; }
+        p { font-size: 1rem; line-height: 1.5; text-align: center; margin-bottom: 15px; opacity: 0.9; }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 14px 20px; font-size: 1.1rem;
+            border-radius: 15px; cursor: pointer; font-weight: 700; width: 100%; max-width: 350px;
+            margin: 10px auto; transition: all 0.2s; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-success { background: var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+        .btn-danger { background: var(--danger); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); box-shadow: none; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--glass); border: 1px solid var(--border); border-radius: 20px;
+            padding: 20px; backdrop-filter: blur(10px); margin-bottom: 20px;
+        }
+
+        /* Inputs */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; max-width: 350px; margin: 0 auto 15px; }
+        input[type="text"], select {
+            flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.3); color: white; font-size: 1rem; outline: none; transition: 0.2s;
+        }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: left 1rem center; background-size: 1em; }
+        select option { background: var(--bg); color: white; }
+
+        /* Categories Grid */
+        .categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        @media(max-width: 400px) { .categories-grid { grid-template-columns: repeat(2, 1fr); } }
+        .cat-btn {
+            background: rgba(0,0,0,0.3); border: 2px solid var(--border); border-radius: 12px;
+            padding: 12px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; color: white; gap: 8px; font-weight: bold; font-size: 0.85rem; text-align: center;
+        }
+        .cat-btn.active { background: rgba(99,102,241,0.2); border-color: var(--primary); box-shadow: 0 0 15px rgba(99,102,241,0.3); }
+        .cat-icon { font-size: 1.8rem; }
+
+        /* Player Setup */
+        .stepper { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 12px; margin: 0 auto 15px; max-width: 400px; border: 1px solid var(--border);}
+        .step-btn { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; font-size: 24px; font-weight: 900; border: none; cursor: pointer; transition: 0.1s; display:flex; align-items:center; justify-content:center;}
+        .step-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.9); }
+        .step-val { font-size: 24px; font-weight: 900; text-align: center; width: 60px; color: var(--accent); }
+
+        .names-list { display: flex; flex-direction: column; gap: 12px; max-width: 400px; margin: 0 auto 20px; }
+        .name-row { display:flex; align-items:center; gap:10px; background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; border: 1px solid var(--border);}
+        .name-input { flex:1; background: transparent; border: none; color: white; font-size: 16px; font-weight: bold; font-family: 'Tajawal', sans-serif; outline: none; padding: 5px; }
+
+        /* Options List */
+        .options-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px; margin: 0 auto; }
+        .option-card {
+            background: rgba(255,255,255,0.08); border: 2px solid var(--border); border-radius: 12px;
+            padding: 16px; cursor: pointer; transition: 0.3s; font-size: 1.05rem; line-height: 1.4;
+            position: relative; overflow: hidden;
+        }
+        .option-card.interactive:hover { border-color: var(--primary); background: rgba(99,102,241,0.1); transform: translateY(-2px); }
+        .option-card.interactive:active { transform: scale(0.98); }
+        
+        .option-card.correct { background: rgba(16,185,129,0.2); border-color: var(--success); }
+        .option-card.wrong { background: rgba(239,68,68,0.2); border-color: var(--danger); opacity: 0.7; }
+        
+        .timer-circle {
+            width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--border);
+            display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900;
+            margin: 0 auto 20px; color: var(--accent); position: relative;
+        }
+        .timer-circle.urgent { color: var(--danger); animation: pulse 0.5s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Pass Device Overlay */
+        .pass-device-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 100; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .pass-device-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+
+        .player-results { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px; }
+        .player-badge { padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; border: 2px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); color: white;}
+        .player-badge.right { border-color: var(--success); background: rgba(16, 185, 129, 0.2); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);}
+        .player-badge.wrong { border-color: var(--danger); background: rgba(239, 68, 68, 0.2); opacity: 0.8; }
+
+        /* Podium Screen */
+        .podium-container { 
+            display: flex; align-items: flex-end; justify-content: center; gap: 16px; 
+            margin-top: 50px; height: 260px; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto;
+            border-bottom: 4px solid rgba(255, 255, 255, 0.1); padding-bottom: 0px;
+        }
+        .podium-place { display: flex; flex-direction: column; align-items: center; width: 110px; position: relative; animation: slideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+        .podium-score {
+            font-size: 24px; font-weight: 900; color: var(--accent); text-shadow: 0 4px 12px rgba(0, 240, 255, 0.4);
+            margin-bottom: 12px;
+        }
+        .podium-bar { 
+            width: 100%; border-radius: 20px 20px 0 0; 
+            display: flex; justify-content: center; padding-top: 20px; 
+            font-size: 40px; font-weight: 900; color: white; 
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: inset 0 8px 16px rgba(255,255,255,0.2), 0 -8px 24px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        .podium-place.rank-1 .podium-bar { height: 180px; background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); }
+        .podium-place.rank-2 .podium-bar { height: 140px; background: linear-gradient(180deg, #94a3b8 0%, #475569 100%); }
+        .podium-place.rank-3 .podium-bar { height: 100px; background: linear-gradient(180deg, #b45309 0%, #78350f 100%); }
+        .podium-name {
+            position: absolute; bottom: 20px; font-size: 16px; font-weight: 800; color: white; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; text-align: center;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .player-list { display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto; width: 100%; }
+        .list-item { background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 12px; display: flex; justify-content: space-between; border: 1px solid var(--border); font-weight: bold; font-size: 0.95rem; }
+
+        .explanation { margin-top: 15px; padding: 15px; background: rgba(16,185,129,0.1); border-left: 4px solid var(--success); border-radius: 0 10px 10px 0; font-size: 0.95rem; color: #d1fae5; display: none; }
+        
+        /* Top Bar */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+        .top-bar > * { pointer-events: auto; }
+        .top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .top-btn:hover { background: rgba(255,255,255,0.2); }
+    </style>
+<script src="../js/protection.js"></script>
+</head>
+<body>
+    <div class="top-bar">
+        <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+        <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">مين الصح ⚖️</div>
+    </div>
+
+    <!-- Screen 1: Setup -->
+    <div id="screen-setup" class="screen active">
+        <h1>مين الصح ⚖️</h1>
+        <p>اكتشف الحقيقة من بين الأكاذيب! مرر الهاتف وصوت سراً.</p>
+        
+        <div class="glass-card" style="text-align: right;">
+            <h3 style="margin-bottom: 10px; color: var(--accent);">كيف تلعب؟</h3>
+            <ul style="padding-right: 20px; font-size: 0.95rem; line-height: 1.6; opacity: 0.9;">
+                <li>يعرض التطبيق معلومة صحيحة واحدة وكذبتين.</li>
+                <li>اقرؤوا الخيارات وتناقشوا دون الضغط على شيء.</li>
+                <li>عند انتهاء الوقت، سيُطلب من كل لاعب استلام الهاتف والتصويت سراً.</li>
+                <li>الفائز هو من يحصل على أكبر عدد من النقاط بكشف الحقيقة!</li>
+            </ul>
+        </div>
+
+        <div class="glass-card">
+            <h2>عدد اللاعبين</h2>
+            <div class="stepper">
+                <button class="step-btn" onclick="updatePlayerCount(-1)">-</button>
+                <div class="step-val" id="player-count">2</div>
+                <button class="step-btn" onclick="updatePlayerCount(1)">+</button>
+            </div>
+            <div id="names-container" class="names-list">
+                <!-- Inputs generated dynamically -->
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h2>إعدادات اللعبة</h2>
+            <div style="margin-bottom: 15px;">
+                <h3 style="margin-bottom:10px; font-size:1.1rem; color:var(--accent);">عدد الجولات:</h3>
+                <select id="rounds-select">
+                    <option value="5">5 جولات</option>
+                    <option value="10" selected>10 جولات</option>
+                    <option value="15">15 جولة</option>
+                </select>
+            </div>
+            
+            <div>
+                <h3 style="margin-bottom:10px; font-size:1.1rem; color:var(--accent);">الفئات (اختر واحدة أو أكثر):</h3>
+                <div class="categories-grid" id="categories-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-success" id="start-btn" onclick="startGame()">ابدأ اللعبة!</button>
+    </div>
+
+    <!-- Screen 2: Reading Phase -->
+    <div id="screen-reading" class="screen">
+        <h2>مرحلة التفكير</h2>
+        <p id="reading-category" style="color: var(--accent); font-weight: bold; margin-bottom: 5px;"></p>
+        <p>اقرؤوا الخيارات بصوت عالٍ. لا تخبروا أحداً باختياركم!</p>
+        
+        <div class="timer-circle" id="reading-timer">45</div>
+        
+        <div class="options-list" id="reading-options">
+            <!-- Populated dynamically -->
+        </div>
+
+        <button class="btn" style="margin-top: 30px;" onclick="endReadingPhase()">الجميع جاهز للتصويت</button>
+    </div>
+
+    <!-- Screen 3: Voting Phase -->
+    <div id="screen-voting" class="screen">
+        <h2>تصويت سري 🤫</h2>
+        <p>دور اللاعب: <span id="current-voter-name" style="color: var(--accent); font-weight: bold; font-size: 1.3rem;"></span></p>
+        
+        <div class="options-list" id="voting-options">
+            <!-- Populated dynamically -->
+        </div>
+    </div>
+
+    <!-- Pass Device Overlay -->
+    <div id="overlay-pass" class="pass-device-overlay">
+        <h1 style="font-size: 3rem; margin-bottom:10px;">📱</h1>
+        <h2>مرر الهاتف إلى</h2>
+        <h1 id="pass-to-name" style="color: var(--accent); font-size: 2.5rem; margin-bottom: 20px;"></h1>
+        <p id="pass-message" style="font-size:1.2rem;">لا تدع أحداً يرى شاشتك!</p>
+        <button class="btn btn-success" style="margin-top: 30px;" onclick="readyToVote()">أنا جاهز للاختيار</button>
+    </div>
+
+    <!-- Screen 4: Results -->
+    <div id="screen-results" class="screen">
+        <h2 id="result-title">كشف الحقيقة! 🥁</h2>
+        
+        <div class="options-list" id="result-options">
+            <!-- Populated dynamically -->
+        </div>
+        
+        <div id="result-explanation" class="explanation"></div>
+
+        <div style="margin-top: 30px;" class="glass-card">
+            <h3 style="color: var(--accent); font-size: 1.2rem;">نتائج الجولة</h3>
+            <div id="round-results" class="player-results"></div>
+        </div>
+
+        <button class="btn btn-success" style="margin-top: 20px; display: none;" id="next-round-btn" onclick="nextRound()">المرحلة التالية</button>
+    </div>
+
+    <!-- Screen 5: Podium -->
+    <div id="screen-podium" class="screen">
+        <h1>النتائج النهائية 🏆</h1>
+        <div id="podium-area" class="podium-container">
+            <!-- Populated dynamically -->
+        </div>
+        
+        <div id="final-leaderboard" class="player-list" style="margin-top: 30px;">
+            <!-- Other players -->
+        </div>
+
+        <button id="tiebreaker-btn" class="btn btn-danger" style="display: none; margin-top: 20px;" onclick="startTiebreaker()">جولة كسر التعادل ⚔️</button>
+        <button class="btn" style="margin-top: 20px;" onclick="location.reload()">لعبة جديدة</button>
+    </div>
+
+    <script src="truth-data.js"></script>
+    <script>
+        // --- State ---
+        let numPlayers = 2;
+        let players = [];
+        let totalRounds = 10;
+        let currentRound = 0;
+        let selectedCategories = []; // Will be set to first category in window.onload
+        let gameQuestions = [];
+        let currentQuestion = null;
+        
+        // Voting State
+        let votes = {}; // { playerName: optionIndex }
+        let currentVoterIndex = 0;
+        let readingInterval = null;
+        let tiebreakerPlayers = [];
+
+        // --- Audio Context & SFX ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(freq, type, duration, vol=0.1) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playTick() { playTone(800, 'sine', 0.1, 0.05); }
+        function playLock() { playTone(300, 'square', 0.1, 0.2); setTimeout(()=>playTone(200, 'square', 0.1, 0.2), 100); }
+        function playCorrect() { 
+            playTone(400, 'sine', 0.1, 0.2); 
+            setTimeout(()=>playTone(600, 'sine', 0.2, 0.2), 100); 
+            setTimeout(()=>playTone(800, 'sine', 0.4, 0.2), 200); 
+        }
+        function playWrong() { 
+            playTone(300, 'sawtooth', 0.3, 0.2); 
+            setTimeout(()=>playTone(250, 'sawtooth', 0.4, 0.2), 200); 
+        }
+        
+        function playDrumRoll() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const bufferSize = audioCtx.sampleRate * 2; // 2 seconds
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+            filter.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 1.5);
+            
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.9);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start();
+        }
+
+        // --- Setup ---
+        window.onload = () => {
+            if (TRUTH_DB.length > 0) {
+                selectedCategories = [TRUTH_DB[0].category];
+            }
+            renderCategories();
+            renderNameInputs();
+        };
+
+        const catIcons = {
+            "عالم الحيوانات والكائنات الحية": "🦁",
+            "الدول والجغرافيا": "🌍",
+            "التاريخ والشخصيات": "📜",
+            "العلوم والفضاء": "🚀",
+            "جسم الإنسان والطب": "🩺",
+            "الاختراعات والتكنولوجيا": "💻",
+            "الأطعمة والمأكولات": "🍔",
+            "الأساطير والحضارات القديمة": "🏛️",
+            "عجائب الطبيعة والطقس": "⛈️",
+            "الأرقام والغرائب العامة": "🔢"
+        };
+
+        function renderCategories() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+
+
+            TRUTH_DB.forEach(cat => {
+                const btn = document.createElement('div');
+                btn.className = 'cat-btn';
+                btn.id = `cat-btn-${cat.category}`;
+                const icon = catIcons[cat.category] || "📌";
+                // Shorten name if needed for UI
+                let shortName = cat.category.split(' و')[0];
+                if(shortName.length > 15) shortName = shortName.substring(0, 15) + '..';
+                
+                btn.innerHTML = `<div class="cat-icon">${icon}</div><div>${shortName}</div>`;
+                btn.onclick = () => toggleCategory(cat.category);
+                container.appendChild(btn);
+            });
+        }
+
+        function toggleCategory(catId) {
+            if (selectedCategories.includes(catId)) {
+                // Don't allow unselecting if it's the last one
+                if (selectedCategories.length > 1) {
+                    selectedCategories = selectedCategories.filter(c => c !== catId);
+                }
+            } else {
+                selectedCategories.push(catId);
+            }
+            updateCategoryUI();
+        }
+
+        function updateCategoryUI() {
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            selectedCategories.forEach(cat => {
+                const el = document.getElementById(`cat-btn-${cat}`);
+                if(el) el.classList.add('active');
+            });
+        }
+
+        function updatePlayerCount(delta) {
+            numPlayers += delta;
+            if (numPlayers < 2) numPlayers = 2;
+            if (numPlayers > 15) numPlayers = 15;
+            document.getElementById('player-count').textContent = numPlayers;
+            renderNameInputs();
+        }
+
+        function renderNameInputs() {
+            const container = document.getElementById('names-container');
+            const existingInputs = container.querySelectorAll('input');
+            const currentNames = Array.from(existingInputs).map(i => i.value);
+            
+            container.innerHTML = '';
+            for (let i = 0; i < numPlayers; i++) {
+                const row = document.createElement('div');
+                row.className = 'name-row';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'name-input';
+                input.placeholder = `اللاعب ${i + 1}`;
+                input.value = currentNames[i] || '';
+                input.maxLength = 15;
+                input.id = `player-name-${i}`;
+                
+                row.appendChild(input);
+                container.appendChild(row);
+            }
+        }
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // --- Game Logic ---
+        function startGame() {
+            players = [];
+            for (let i = 0; i < numPlayers; i++) {
+                const val = document.getElementById(`player-name-${i}`).value.trim();
+                players.push({ name: val || `اللاعب ${i + 1}`, score: 0 });
+            }
+            
+            totalRounds = parseInt(document.getElementById('rounds-select').value);
+            currentRound = 0;
+            tiebreakerPlayers = [];
+            
+            // Prepare questions
+            let allQs = [];
+            
+            const loadQs = () => {
+                let qs = [];
+                selectedCategories.forEach(catId => {
+                    const cat = TRUTH_DB.find(c => c.category === catId);
+                    if (cat) {
+                        cat.questions.forEach(q => qs.push({ ...q, catName: cat.category }));
+                    }
+                });
+                return qs;
+            };
+
+            allQs = loadQs();
+            
+            // No duplicates logic using sessionStorage
+            let usedIds = JSON.parse(sessionStorage.getItem('usedTruthQuestions') || '[]');
+            let availableQs = allQs.filter(q => !usedIds.includes(q.id));
+            
+            if (availableQs.length < totalRounds) {
+                // Not enough questions left, reset pool
+                sessionStorage.setItem('usedTruthQuestions', '[]');
+                usedIds = [];
+                availableQs = allQs;
+            }
+            
+            shuffleArray(availableQs);
+            gameQuestions = availableQs;
+            
+            if(gameQuestions.length < totalRounds) {
+                totalRounds = gameQuestions.length;
+            }
+
+            switchScreen('screen-reading');
+            nextRound();
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--accent); color:#111; padding:15px 25px; border-radius:12px; font-weight:bold; font-size:1.2rem; z-index:9999; animation: slideDown 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.5);';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.style.opacity = '0', 2500);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function nextRound() {
+            if (currentRound >= totalRounds) {
+                // Sudden Death Tiebreaker Check
+                const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+                const topScore = sortedPlayers[0].score;
+                const winners = sortedPlayers.filter(p => p.score === topScore);
+                
+                if (winners.length > 1) {
+                    // Tie! Loop into another round
+                    tiebreakerPlayers = winners;
+                    totalRounds++; // Add one more round
+                    showToast('⚔️ تعادل! جولة كسر تعادل حاسمة...');
+                } else {
+                    endGame();
+                    return;
+                }
+            }
+            
+            currentQuestion = gameQuestions[currentRound % gameQuestions.length];
+            currentRound++;
+            
+            // Save as used
+            let usedIds = JSON.parse(sessionStorage.getItem('usedTruthQuestions') || '[]');
+            if(!usedIds.includes(currentQuestion.id)) {
+                usedIds.push(currentQuestion.id);
+                sessionStorage.setItem('usedTruthQuestions', JSON.stringify(usedIds));
+            }
+            
+            // Shuffle options for display but keep track of correct one
+            let opts = currentQuestion.options.map((text, i) => ({ text, isCorrect: i === currentQuestion.correct_index, origIndex: i }));
+            shuffleArray(opts);
+            currentQuestion.displayOptions = opts;
+            
+            votes = {};
+            currentVoterIndex = 0;
+            
+            startReadingPhase();
+        }
+
+        // --- Phase 1: Reading ---
+        function startReadingPhase() {
+            switchScreen('screen-reading');
+            document.getElementById('reading-category').textContent = `الفئة: ${currentQuestion.catName}`;
+            
+            const list = document.getElementById('reading-options');
+            list.innerHTML = '';
+            const labels = ['أ', 'ب', 'ج'];
+            currentQuestion.displayOptions.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option-card';
+                div.innerHTML = `<strong>${labels[i]} -</strong> ${opt.text}`;
+                list.appendChild(div);
+            });
+            
+            let timeLeft = 45;
+            const timerEl = document.getElementById('reading-timer');
+            timerEl.textContent = timeLeft;
+            timerEl.className = 'timer-circle';
+            
+            clearInterval(readingInterval);
+            readingInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = timeLeft;
+                if(timeLeft <= 10) {
+                    timerEl.classList.add('urgent');
+                    playTick();
+                }
+                if(timeLeft <= 0) {
+                    endReadingPhase();
+                }
+            }, 1000);
+        }
+
+        function endReadingPhase() {
+            clearInterval(readingInterval);
+            startVotingPhase();
+        }
+
+        // --- Phase 2: Voting ---
+        function startVotingPhase() {
+            showPassDeviceOverlay();
+        }
+
+        function showPassDeviceOverlay() {
+            const activePlayers = tiebreakerPlayers.length > 0 ? tiebreakerPlayers : players;
+            if (currentVoterIndex >= activePlayers.length) {
+                showResultsPhase();
+                return;
+            }
+            
+            const currentPlayer = activePlayers[currentVoterIndex];
+            document.getElementById('pass-to-name').textContent = currentPlayer.name;
+            document.getElementById('overlay-pass').classList.add('active');
+        }
+
+        function readyToVote() {
+            document.getElementById('overlay-pass').classList.remove('active');
+            switchScreen('screen-voting');
+            
+            const activePlayers = tiebreakerPlayers.length > 0 ? tiebreakerPlayers : players;
+            const currentPlayer = activePlayers[currentVoterIndex];
+            document.getElementById('current-voter-name').textContent = currentPlayer.name;
+            
+            const list = document.getElementById('voting-options');
+            list.innerHTML = '';
+            const labels = ['أ', 'ب', 'ج'];
+            currentQuestion.displayOptions.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option-card interactive';
+                div.innerHTML = `<strong>${labels[i]} -</strong> ${opt.text}`;
+                div.onclick = () => recordVote(currentPlayer.name, i);
+                list.appendChild(div);
+            });
+        }
+
+        function recordVote(playerName, optionIndex) {
+            playLock();
+            votes[playerName] = optionIndex;
+            currentVoterIndex++;
+            showPassDeviceOverlay(); // immediate hide and pass
+        }
+
+        // --- Phase 3: Results ---
+        function showResultsPhase() {
+            switchScreen('screen-results');
+            document.getElementById('result-title').textContent = "كشف الحقيقة! 🥁";
+            
+            const list = document.getElementById('result-options');
+            list.innerHTML = '';
+            const exp = document.getElementById('result-explanation');
+            exp.style.display = 'none';
+            document.getElementById('round-results').innerHTML = '';
+            document.getElementById('next-round-btn').style.display = 'none';
+            
+            // Show blank options first
+            const labels = ['أ', 'ب', 'ج'];
+            currentQuestion.displayOptions.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option-card';
+                div.id = `res-opt-${i}`;
+                div.innerHTML = `<strong>${labels[i]} -</strong> ${opt.text}`;
+                list.appendChild(div);
+            });
+
+            playDrumRoll();
+            
+            // Delay reveal
+            setTimeout(() => {
+                revealTruth();
+            }, 2000);
+        }
+
+        function revealTruth() {
+            let anyoneCorrect = false;
+            const activePlayers = tiebreakerPlayers.length > 0 ? tiebreakerPlayers : players;
+
+            currentQuestion.displayOptions.forEach((opt, i) => {
+                const div = document.getElementById(`res-opt-${i}`);
+                if (opt.isCorrect) {
+                    div.classList.add('correct');
+                } else {
+                    div.classList.add('wrong');
+                }
+            });
+
+            const resultsDiv = document.getElementById('round-results');
+            activePlayers.forEach(p => {
+                const votedIdx = votes[p.name];
+                const isCorrect = currentQuestion.displayOptions[votedIdx].isCorrect;
+                
+                const badge = document.createElement('div');
+                badge.className = `player-badge ${isCorrect ? 'right' : 'wrong'}`;
+                const icon = isCorrect ? '✅' : '❌';
+                const pts = isCorrect ? '+1 نقطة' : '0 نقطة';
+                badge.innerHTML = `<span>${p.name}</span> <span style="color:${isCorrect ? 'var(--success)' : 'var(--danger)'}; margin: 0 5px;">| ${pts}</span> <span>${icon}</span>`;
+                resultsDiv.appendChild(badge);
+                
+                if (isCorrect) {
+                    p.score++;
+                    anyoneCorrect = true;
+                }
+            });
+
+            if (anyoneCorrect) playCorrect();
+            else playWrong();
+
+            const exp = document.getElementById('result-explanation');
+            exp.innerHTML = `<strong>التفسير العلمي:</strong> ${currentQuestion.fact_explanation}`;
+            exp.style.display = 'block';
+            
+            const nextBtn = document.getElementById('next-round-btn');
+            nextBtn.style.display = 'block';
+            nextBtn.onclick = nextRound;
+        }
+
+        // --- End Game & Podium ---
+        function endGame() {
+            switchScreen('screen-podium');
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+            
+            const tiebreakerBtn = document.getElementById('tiebreaker-btn');
+            if(tiebreakerBtn) tiebreakerBtn.style.display = 'none';
+            
+            document.querySelector('#screen-podium h1').textContent = "النتائج النهائية 🏆";
+            
+            playDrumRoll();
+            setTimeout(() => {
+                playCorrect(); setTimeout(playCorrect, 200); setTimeout(playCorrect, 400);
+            }, 2000);
+
+            renderPodium(sortedPlayers);
+        }
+
+        function renderPodium(sortedPlayers) {
+            const podium = document.getElementById('podium-area');
+            const list = document.getElementById('final-leaderboard');
+            podium.innerHTML = '';
+            list.innerHTML = '';
+
+            const order = [1, 0, 2];
+            order.forEach((idx) => {
+                const p = sortedPlayers[idx];
+                if(p) {
+                    const placeEl = document.createElement('div');
+                    placeEl.className = `podium-place rank-${idx + 1}`;
+                    
+                    let html = `<div class="podium-score">${p.score}</div>`;
+                    html += `<div class="podium-bar">${idx === 0 ? '👑' : ''}`;
+                    html += `<div class="podium-name">${p.name}</div>`;
+                    html += `</div>`;
+                    
+                    placeEl.innerHTML = html;
+                    podium.appendChild(placeEl);
+                }
+            });
+
+            for (let i = 3; i < sortedPlayers.length; i++) {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `<span>#${i+1} ${sortedPlayers[i].name}</span><span style="color:var(--accent); font-weight:bold">${sortedPlayers[i].score}</span>`;
+                list.appendChild(item);
+            }
+        }
+
+        function createPodiumBar(rank, name, score) {
+            const div = document.createElement('div');
+            div.className = `podium-bar podium-${rank}`;
+            div.innerHTML = `
+                <div class="rank">#${rank}</div>
+                <div class="score">${score}</div>
+                <div class="name">${name}</div>
+            `;
+            return div;
+        }
+
+        function startTiebreaker() {
+            // Get one more random question
+            let allQs = [];
+            TRUTH_DB.forEach(cat => {
+                cat.questions.forEach(q => allQs.push({ ...q, catName: cat.category }));
+            });
+            shuffleArray(allQs);
+            currentQuestion = allQs[0];
+            
+            let opts = currentQuestion.options.map((text, i) => ({ text, isCorrect: i === currentQuestion.correct_index }));
+            shuffleArray(opts);
+            currentQuestion.displayOptions = opts;
+            
+            votes = {};
+            currentVoterIndex = 0;
+            
+            startReadingPhase();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+    </script>
+<script>
+function confirmExit() { let modal = document.getElementById('custom-exit-modal'); if (!modal) { modal = document.createElement('div'); modal.id = 'custom-exit-modal'; modal.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:100000; display:flex; justify-content:center; align-items:center;"><div style="background:#1e293b; padding:30px; border-radius:24px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"><div style="font-size:50px; margin-bottom:10px; line-height:1;">🚪</div><h3 style="color:white; font-size:24px; font-weight:900; font-family:\'Tajawal\', sans-serif; margin-bottom:10px;">تأكيد الخروج</h3><p style="color:#94a3b8; font-size:16px; font-family:\'Tajawal\', sans-serif; margin-bottom:25px; line-height:1.5;">هل أنت متأكد من رغبتك بالخروج؟<br>سيتم فقدان التقدم الحالي في اللعبة.</p><div style="display:flex; gap:12px; justify-content:center;"><button onclick="window.location.href=\'../lobby.html\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#ef4444; color:white; box-shadow:0 6px 0 #b91c1c; transition:all 0.2s;">نعم، خروج</button><button onclick="document.getElementById(\'custom-exit-modal\').style.display=\'none\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#475569; color:white; box-shadow:0 6px 0 #334155; transition:all 0.2s;">إلغاء</button></div></div></div><style>@keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } } #custom-exit-modal button:active { transform: translateY(4px); box-shadow: none !important; }</style>'; document.body.appendChild(modal); } modal.style.display = 'flex'; }
+</script>
+</body>
+</html>
