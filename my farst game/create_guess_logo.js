@@ -1,0 +1,516 @@
+const fs = require('fs');
+
+const jsonData = `[
+  { "id": 1, "name": "Google", "category": "tech", "answer": "جوجل", "image_url": "https://cdn.simpleicons.org/google" },
+  { "id": 2, "name": "Apple", "category": "tech", "answer": "آبل", "image_url": "https://cdn.simpleicons.org/apple" },
+  { "id": 3, "name": "Facebook", "category": "social", "answer": "فيسبوك", "image_url": "https://cdn.simpleicons.org/facebook" },
+  { "id": 4, "name": "Instagram", "category": "social", "answer": "انستغرام", "image_url": "https://cdn.simpleicons.org/instagram" },
+  { "id": 5, "name": "X (Twitter)", "category": "social", "answer": "إكس (تويتر)", "image_url": "https://cdn.simpleicons.org/x" },
+  { "id": 6, "name": "YouTube", "category": "social", "answer": "يوتيوب", "image_url": "https://cdn.simpleicons.org/youtube" },
+  { "id": 7, "name": "TikTok", "category": "social", "answer": "تيك توك", "image_url": "https://cdn.simpleicons.org/tiktok" },
+  { "id": 8, "name": "Snapchat", "category": "social", "answer": "سناب شات", "image_url": "https://cdn.simpleicons.org/snapchat" },
+  { "id": 9, "name": "WhatsApp", "category": "social", "answer": "واتساب", "image_url": "https://cdn.simpleicons.org/whatsapp" },
+  { "id": 10, "name": "Telegram", "category": "social", "answer": "تيليجرام", "image_url": "https://cdn.simpleicons.org/telegram" },
+  { "id": 11, "name": "Pinterest", "category": "social", "answer": "بينتيريست", "image_url": "https://cdn.simpleicons.org/pinterest" },
+  { "id": 12, "name": "Reddit", "category": "social", "answer": "ريديت", "image_url": "https://cdn.simpleicons.org/reddit" },
+  { "id": 13, "name": "Discord", "category": "social", "answer": "ديسكورد", "image_url": "https://cdn.simpleicons.org/discord" },
+  { "id": 14, "name": "GitHub", "category": "tech", "answer": "جيت هاب", "image_url": "https://cdn.simpleicons.org/github" },
+  { "id": 15, "name": "GitLab", "category": "tech", "answer": "جيت لاب", "image_url": "https://cdn.simpleicons.org/gitlab" },
+  { "id": 16, "name": "Zoom", "category": "tech", "answer": "زوم", "image_url": "https://cdn.simpleicons.org/zoom" },
+  { "id": 17, "name": "Dropbox", "category": "tech", "answer": "دروب بوكس", "image_url": "https://cdn.simpleicons.org/dropbox" },
+  { "id": 18, "name": "Samsung", "category": "tech", "answer": "سامسونج", "image_url": "https://cdn.simpleicons.org/samsung" },
+  { "id": 19, "name": "Nike", "category": "sport", "answer": "نايكي", "image_url": "https://cdn.simpleicons.org/nike" },
+  { "id": 20, "name": "Adidas", "category": "sport", "answer": "أديداس", "image_url": "https://cdn.simpleicons.org/adidas" },
+  { "id": 21, "name": "McDonald's", "category": "food", "answer": "ماكدونالدز", "image_url": "https://cdn.simpleicons.org/mcdonalds" },
+  { "id": 22, "name": "KFC", "category": "food", "answer": "كنتاكي", "image_url": "https://cdn.simpleicons.org/kfc" },
+  { "id": 23, "name": "Starbucks", "category": "food", "answer": "ستاربكس", "image_url": "https://cdn.simpleicons.org/starbucks" },
+  { "id": 24, "name": "Coca-Cola", "category": "food", "answer": "كوكاكولا", "image_url": "https://cdn.simpleicons.org/cocacola" },
+  { "id": 25, "name": "BMW", "category": "car", "answer": "بي إم دبليو", "image_url": "https://cdn.simpleicons.org/bmw" },
+  { "id": 26, "name": "Audi", "category": "car", "answer": "أودي", "image_url": "https://cdn.simpleicons.org/audi" },
+  { "id": 27, "name": "Toyota", "category": "car", "answer": "تويوتا", "image_url": "https://cdn.simpleicons.org/toyota" },
+  { "id": 28, "name": "Honda", "category": "car", "answer": "هوندا", "image_url": "https://cdn.simpleicons.org/honda" },
+  { "id": 29, "name": "Tesla", "category": "car", "answer": "تسلا", "image_url": "https://cdn.simpleicons.org/tesla" },
+  { "id": 30, "name": "IKEA", "category": "retail", "answer": "ايكيا", "image_url": "https://cdn.simpleicons.org/ikea" },
+  { "id": 31, "name": "Visa", "category": "finance", "answer": "فيزا", "image_url": "https://cdn.simpleicons.org/visa" },
+  { "id": 32, "name": "Mastercard", "category": "finance", "answer": "ماستركارد", "image_url": "https://cdn.simpleicons.org/mastercard" },
+  { "id": 33, "name": "PayPal", "category": "finance", "answer": "باي بال", "image_url": "https://cdn.simpleicons.org/paypal" },
+  { "id": 34, "name": "Airbnb", "category": "travel", "answer": "اير بي إن بي", "image_url": "https://cdn.simpleicons.org/airbnb" },
+  { "id": 35, "name": "Uber", "category": "travel", "answer": "أوبر", "image_url": "https://cdn.simpleicons.org/uber" },
+  { "id": 36, "name": "Netflix", "category": "entertainment", "answer": "نتفليكس", "image_url": "https://cdn.simpleicons.org/netflix" },
+  { "id": 37, "name": "Spotify", "category": "entertainment", "answer": "سبوتيفاي", "image_url": "https://cdn.simpleicons.org/spotify" },
+  { "id": 38, "name": "Wikipedia", "category": "web", "answer": "ويكيبيديا", "image_url": "https://cdn.simpleicons.org/wikipedia" },
+  { "id": 39, "name": "eBay", "category": "web", "answer": "إيباي", "image_url": "https://cdn.simpleicons.org/ebay" },
+  { "id": 40, "name": "Intel", "category": "tech", "answer": "إنتل", "image_url": "https://cdn.simpleicons.org/intel" },
+  { "id": 41, "name": "AMD", "category": "tech", "answer": "إيه إم دي", "image_url": "https://cdn.simpleicons.org/amd" },
+  { "id": 42, "name": "NVIDIA", "category": "tech", "answer": "إنفيديا", "image_url": "https://cdn.simpleicons.org/nvidia" },
+  { "id": 43, "name": "Cisco", "category": "tech", "answer": "سيسكو", "image_url": "https://cdn.simpleicons.org/cisco" },
+  { "id": 44, "name": "Dell", "category": "tech", "answer": "ديل", "image_url": "https://cdn.simpleicons.org/dell" },
+  { "id": 45, "name": "HP", "category": "tech", "answer": "إتش بي", "image_url": "https://cdn.simpleicons.org/hp" },
+  { "id": 46, "name": "Lenovo", "category": "tech", "answer": "لينوفو", "image_url": "https://cdn.simpleicons.org/lenovo" },
+  { "id": 47, "name": "ASUS", "category": "tech", "answer": "أسوس", "image_url": "https://cdn.simpleicons.org/asus" },
+  { "id": 48, "name": "Acer", "category": "tech", "answer": "ايسر", "image_url": "https://cdn.simpleicons.org/acer" },
+  { "id": 49, "name": "Huawei", "category": "tech", "answer": "هواوي", "image_url": "https://cdn.simpleicons.org/huawei" },
+  { "id": 50, "name": "Xiaomi", "category": "tech", "answer": "شاومي", "image_url": "https://cdn.simpleicons.org/xiaomi" },
+  { "id": 51, "name": "LG", "category": "tech", "answer": "إل جي", "image_url": "https://cdn.simpleicons.org/lg" },
+  { "id": 52, "name": "Panasonic", "category": "tech", "answer": "باناسونيك", "image_url": "https://cdn.simpleicons.org/panasonic" },
+  { "id": 53, "name": "Nikon", "category": "tech", "answer": "نيكون", "image_url": "https://cdn.simpleicons.org/nikon" },
+  { "id": 54, "name": "Fitbit", "category": "tech", "answer": "فيتبيت", "image_url": "https://cdn.simpleicons.org/fitbit" },
+  { "id": 55, "name": "Garmin", "category": "tech", "answer": "جارمن", "image_url": "https://cdn.simpleicons.org/garmin" },
+  { "id": 56, "name": "Razer", "category": "tech", "answer": "ريزر", "image_url": "https://cdn.simpleicons.org/razer" },
+  { "id": 57, "name": "Steam", "category": "gaming", "answer": "ستيم", "image_url": "https://cdn.simpleicons.org/steam" },
+  { "id": 58, "name": "Epic Games", "category": "gaming", "answer": "إيبك جيمز", "image_url": "https://cdn.simpleicons.org/epicgames" },
+  { "id": 59, "name": "PlayStation", "category": "gaming", "answer": "بلايستيشن", "image_url": "https://cdn.simpleicons.org/playstation" },
+  { "id": 60, "name": "EA", "category": "gaming", "answer": "إي إيه", "image_url": "https://cdn.simpleicons.org/ea" },
+  { "id": 61, "name": "Ubisoft", "category": "gaming", "answer": "يوبيسوفت", "image_url": "https://cdn.simpleicons.org/ubisoft" },
+  { "id": 62, "name": "Activision", "category": "gaming", "answer": "أكتيفيجن", "image_url": "https://cdn.simpleicons.org/activision" },
+  { "id": 63, "name": "Blender", "category": "tech", "answer": "بلندر", "image_url": "https://cdn.simpleicons.org/blender" },
+  { "id": 64, "name": "Figma", "category": "tech", "answer": "فيجما", "image_url": "https://cdn.simpleicons.org/figma" },
+  { "id": 65, "name": "Shopify", "category": "web", "answer": "شوبيفاي", "image_url": "https://cdn.simpleicons.org/shopify" },
+  { "id": 66, "name": "Stripe", "category": "finance", "answer": "سترايب", "image_url": "https://cdn.simpleicons.org/stripe" },
+  { "id": 67, "name": "Salesforce", "category": "tech", "answer": "سيلزفورس", "image_url": "https://cdn.simpleicons.org/salesforce" },
+  { "id": 68, "name": "Zendesk", "category": "tech", "answer": "زينديسك", "image_url": "https://cdn.simpleicons.org/zendesk" },
+  { "id": 69, "name": "Trello", "category": "tech", "answer": "تريلو", "image_url": "https://cdn.simpleicons.org/trello" },
+  { "id": 70, "name": "Asana", "category": "tech", "answer": "أسانا", "image_url": "https://cdn.simpleicons.org/asana" },
+  { "id": 71, "name": "Notion", "category": "tech", "answer": "نوشن", "image_url": "https://cdn.simpleicons.org/notion" },
+  { "id": 72, "name": "Evernote", "category": "tech", "answer": "إيفرنوت", "image_url": "https://cdn.simpleicons.org/evernote" },
+  { "id": 73, "name": "WeChat", "category": "social", "answer": "وي تشات", "image_url": "https://cdn.simpleicons.org/wechat" },
+  { "id": 74, "name": "LINE", "category": "social", "answer": "لاين", "image_url": "https://cdn.simpleicons.org/line" },
+  { "id": 75, "name": "Skype", "category": "social", "answer": "سكايب", "image_url": "https://cdn.simpleicons.org/skype" },
+  { "id": 76, "name": "Vimeo", "category": "entertainment", "answer": "فيميو", "image_url": "https://cdn.simpleicons.org/vimeo" },
+  { "id": 77, "name": "Twitch", "category": "entertainment", "answer": "تويتش", "image_url": "https://cdn.simpleicons.org/twitch" },
+  { "id": 78, "name": "SoundCloud", "category": "entertainment", "answer": "ساوند كلاود", "image_url": "https://cdn.simpleicons.org/soundcloud" },
+  { "id": 79, "name": "Shazam", "category": "entertainment", "answer": "شازام", "image_url": "https://cdn.simpleicons.org/shazam" },
+  { "id": 80, "name": "Waze", "category": "travel", "answer": "ويز", "image_url": "https://cdn.simpleicons.org/waze" },
+  { "id": 81, "name": "Duolingo", "category": "education", "answer": "دولينجو", "image_url": "https://cdn.simpleicons.org/duolingo" },
+  { "id": 82, "name": "Grammarly", "category": "education", "answer": "جرامرلي", "image_url": "https://cdn.simpleicons.org/grammarly" },
+  { "id": 83, "name": "Anthropic", "category": "tech", "answer": "أنثروبيك", "image_url": "https://cdn.simpleicons.org/anthropic" }
+]`;
+
+const htmlTemplate = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>خمن الشعار</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a; --primary: #7c3aed; --primary-dark: #5b21b6;
+      --accent: #f59e0b; --success: #10b981; --danger: #ef4444;
+      --card-bg: rgba(30, 41, 59, 0.8); --text: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+    .game-container { flex: 1; display: flex; flex-direction: column; padding: 80px 20px 100px !important; max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
+    .screen { display: none; flex-direction: column; flex: 1; animation: fadeIn 0.3s ease; text-align: center; }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .title { font-size: 36px; font-weight: 900; margin-bottom: 20px; color: var(--primary); }
+    .card { background: var(--card-bg); border-radius: 24px; padding: 30px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+    .input-group { margin-bottom: 15px; text-align: right; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #cbd5e1; }
+    .input-field { width: 100%; padding: 15px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.1); color: white; font-family: 'Tajawal', sans-serif; font-size: 16px; transition: all 0.3s; }
+    .input-field:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.5); }
+    .btn { width: 100%; padding: 18px; border-radius: 16px; background: var(--primary); color: white; border: none; font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 900; box-shadow: 0 6px 0 var(--primary-dark); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; margin-bottom: 15px; }
+    .btn:active { transform: translateY(6px); box-shadow: 0 0px 0 var(--primary-dark); }
+    .btn.accent { background: var(--accent); box-shadow: 0 6px 0 #b45309; }
+    .btn.success { background: var(--success); box-shadow: 0 6px 0 #047857; }
+    .btn.danger { background: var(--danger); box-shadow: 0 6px 0 #b91c1c; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; }
+    .top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; }
+    
+    .logo-wrapper { width: 100%; aspect-ratio: 1/1; margin: 20px auto; max-width: 300px; background: white; border-radius: 24px; padding: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 4px solid var(--primary); }
+    .logo-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: invert(0); transition: filter 0.3s; }
+    /* Some simpleicons are dark/black by default, if they are we leave them alone on a white background */
+
+    .timer-display { font-size: 40px; font-weight: 900; margin-bottom: 5px; }
+    .timer-display.urgent { color: var(--danger); animation: heartbeat 0.3s infinite alternate; }
+    @keyframes heartbeat { from { transform: scale(1); } to { transform: scale(1.1); } }
+    
+    .hint-box { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 15px; min-height: 36px; }
+    
+    #players-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px;}
+    .player-btn { flex: 1 1 45%; font-size: 18px; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; border: none; background: var(--success); color: white; box-shadow: 0 4px 0 #047857; transition: transform 0.1s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .player-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #047857; }
+    .player-btn .pts { font-size: 14px; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 10px; }
+
+    .lb-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; }
+    .lb-item.first { border: 2px solid var(--primary); background: rgba(124, 58, 237, 0.2); }
+    .lb-name { flex: 1; font-weight: bold; font-size: 18px; text-align: right; }
+    .lb-score { font-weight: 900; font-size: 24px; color: white; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    <button onclick="showLeaderboard()" class="top-btn" id="lb-top-btn" style="display:none;">🏆 الترتيب</button>
+  </div>
+
+  <div class="game-container">
+    
+    <!-- PHASE 0: TUTORIAL -->
+    <div id="screen-tutorial" class="screen active">
+      <h1 class="title">خمن الشعار 🤔</h1>
+      <div class="card">
+        <h3 style="color:var(--primary); margin-bottom:15px; font-size:24px;">كيف نلعب؟</h3>
+        <p style="font-size:16px; margin-bottom:10px; line-height:1.6; text-align:right;">
+          1️⃣ <strong>الهدف:</strong> اعرف اسم الشركة أو المنتج من خلال الشعار.<br>
+          2️⃣ <strong>التحكم:</strong> الجهاز يبقى بيدي "الحكم". سيظهر الشعار واسمه للحكم أولاً للاستعداد.<br>
+          3️⃣ <strong>النقاط:</strong> بمجرد بدء العداد (15 ثانية)، اعرض الشعار للمجموعة. من يجاوب أسرع قبل ظهور التلميح يحصل على <strong>3 نقاط</strong>. بعد ظهور التلميح (عند الثانية 7)، تصبح الجائزة <strong>نقطة واحدة</strong>.<br>
+          4️⃣ <strong>التحكيم:</strong> يضغط الحكم على اسم اللاعب الفائز فور نطقه للإجابة لإعطائه النقاط.
+        </p>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="showScreen('setup')">فهمت، ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- PHASE 1: SETUP -->
+    <div id="screen-setup" class="screen">
+      <h1 class="title">إعداد اللعبة</h1>
+      <div class="card">
+        <div class="input-group">
+          <label>عدد الجولات الإجمالي</label>
+          <input type="number" id="rounds-count" class="input-field" value="15" min="5" max="50">
+        </div>
+        <div class="input-group">
+          <label>عدد اللاعبين (2+)</label>
+          <input type="number" id="players-count" class="input-field" value="3" min="2" onchange="renderPlayerInputs()">
+        </div>
+        <div id="players-names-container"></div>
+      </div>
+      <button class="btn" onclick="startGame()">ابدأ الجلسة 🎯</button>
+    </div>
+
+    <!-- PHASE 2A: ROUND READY (For Judge Only) -->
+    <div id="screen-ready" class="screen">
+      <h2 style="color:var(--accent); font-size:28px; margin-bottom:20px;">استعد يا حكم 🤫</h2>
+      <div class="card">
+        <p style="font-size:18px; color:rgba(255,255,255,0.7); margin-bottom:10px;">إجابة هذا الشعار هي:</p>
+        <h1 style="font-size:40px; color:var(--success); margin-bottom:20px;" id="ready-answer">--</h1>
+        <div class="logo-wrapper" style="width: 150px; height: 150px; margin: 0 auto;">
+          <img id="ready-logo" class="logo-img" src="" alt="Logo">
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,0.5); margin-bottom:20px;">تأكد أن لا أحد ينظر إلى شاشتك، ثم اضغط بدء واعرض لهم الجوال!</p>
+      <button class="btn success" style="margin-top:auto; padding: 25px; font-size: 26px;" onclick="startRound()">بدء الجولة ⏱️</button>
+    </div>
+
+    <!-- PHASE 2B: PLAY -->
+    <div id="screen-play" class="screen">
+      <div style="font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 5px;">الجولة <span id="round-indicator">1</span> من <span id="total-rounds-indicator">15</span></div>
+      <div class="timer-display" id="timer-text">15</div>
+      
+      <div class="hint-box" id="hint-text"></div>
+      
+      <div class="logo-wrapper">
+        <img id="play-logo" class="logo-img" src="" alt="Logo">
+      </div>
+      
+      <button class="btn accent" style="padding: 10px; font-size: 16px; margin-bottom: 20px; width: fit-content; margin-inline: auto;" onclick="forceHint()" id="force-hint-btn">إظهار التلميح مبكراً 💡</button>
+
+      <div id="players-grid"></div>
+
+      <button class="btn danger" style="margin-top: auto;" onclick="skipLogo()">تخطي (لم يعرفه أحد) ⏭️</button>
+    </div>
+
+    <!-- PHASE 2C: ROUND RESULT / SUCCESS -->
+    <div id="screen-result" class="screen">
+      <h1 class="title" style="font-size:40px;" id="result-title">إجابة صحيحة!</h1>
+      <div class="card">
+        <p style="font-size:20px; margin-bottom:10px;">أسرع لاعب هو:</p>
+        <h2 style="font-size:36px; color:var(--success); margin-bottom:20px;" id="result-winner">--</h2>
+        <p style="font-size:18px;">حصل على <span id="result-points" style="font-weight:bold; color:var(--accent);">3</span> نقاط!</p>
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+        <p style="font-size:16px; color:rgba(255,255,255,0.5);">الإجابة كانت: <strong id="result-answer-text" style="color:white;"></strong></p>
+      </div>
+      <button class="btn accent" style="padding: 15px; font-size: 18px; margin-bottom:10px;" onclick="undoLastPoint()">تراجع عن إعطاء النقطة ↩️</button>
+      <button class="btn" style="margin-top:auto;" onclick="prepareNextRound()">التالي ➡️</button>
+    </div>
+
+    <!-- PHASE 3: LEADERBOARD -->
+    <div id="screen-leaderboard" class="screen">
+      <h1 class="title">النتائج 🏆</h1>
+      <div class="card" id="lb-container" style="padding: 15px; max-height:400px; overflow-y:auto;"></div>
+      <button class="btn" id="lb-next-btn" style="margin-top:auto;" onclick="prepareNextRound()">متابعة اللعب ➡️</button>
+    </div>
+
+    <!-- PHASE 4: WINNER -->
+    <div id="screen-winner" class="screen">
+      <h1 class="title" style="font-size:48px;">النهاية! 🎉</h1>
+      <div class="card">
+        <p style="font-size:20px;">بعد انتهاء جميع الجولات، البطل هو:</p>
+        <h2 style="font-size:40px; color:var(--success); margin-bottom:20px; margin-top:10px;" id="winner-name">--</h2>
+        <p style="font-size:20px;">بمجموع نقاط: <span id="winner-score" style="font-weight:bold; color:var(--accent);"></span></p>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="window.location.href='../lobby.html'">الرئيسية 🏠</button>
+    </div>
+
+  </div>
+
+  <script>
+    const LOGOS_DATA = \${jsonData};
+
+    let players = [];
+    let totalRounds = 15;
+    let currentRound = 0;
+    
+    let currentLogo = null;
+    let availableLogos = [];
+    
+    let timerInterval = null;
+    let timeLeft = 15;
+    let hintRevealed = false;
+    let pointsAvailable = 3;
+    let audioCtx = null;
+    
+    let lastWinnerId = null;
+    let lastPointsAwarded = 0;
+
+    function confirmExit() {
+      if(confirm('هل أنت متأكد من خروجك من اللعبة؟')) {
+        window.location.href = '../lobby.html';
+      }
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function initAudio() {
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playBeep(freq, type, duration) {
+      if(!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    
+    function soundTick() { playBeep(600, 'sine', 0.1); }
+    function soundUrgent() { playBeep(1200, 'sawtooth', 0.15); }
+    function soundHint() { playBeep(800, 'square', 0.2); }
+    function soundWin() { playBeep(600, 'sine', 0.1); setTimeout(()=>playBeep(800, 'sine', 0.3), 100); }
+    function soundLose() { playBeep(200, 'sawtooth', 0.4); }
+
+    function renderPlayerInputs() {
+      const count = Math.max(2, parseInt(document.getElementById('players-count').value) || 2);
+      const container = document.getElementById('players-names-container');
+      container.innerHTML = '';
+      for(let i=0; i<count; i++) {
+        container.innerHTML += \`<div class="input-group"><input type="text" class="input-field player-inp" placeholder="اسم اللاعب \${i+1}" required></div>\`;
+      }
+    }
+    renderPlayerInputs();
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-'+id).classList.add('active');
+    }
+
+    function startGame() {
+      const inputs = document.querySelectorAll('.player-inp');
+      players = Array.from(inputs).map((inp, i) => ({ name: inp.value.trim() || \`اللاعب \${i+1}\`, score: 0, id: i }));
+      totalRounds = parseInt(document.getElementById('rounds-count').value) || 15;
+      
+      document.getElementById('lb-top-btn').style.display = 'block';
+      
+      availableLogos = [...LOGOS_DATA];
+      shuffleArray(availableLogos);
+      
+      currentRound = 0;
+      prepareNextRound();
+    }
+
+    function prepareNextRound() {
+      if (currentRound >= totalRounds || availableLogos.length === 0) {
+        showFinalWinner();
+        return;
+      }
+      currentRound++;
+      currentLogo = availableLogos.pop();
+      
+      // Setup Ready Screen
+      document.getElementById('ready-answer').textContent = currentLogo.answer;
+      document.getElementById('ready-logo').src = currentLogo.image_url;
+      
+      showScreen('ready');
+    }
+
+    function startRound() {
+      initAudio();
+      timeLeft = 15;
+      hintRevealed = false;
+      pointsAvailable = 3;
+      lastWinnerId = null;
+      lastPointsAwarded = 0;
+
+      document.getElementById('round-indicator').textContent = currentRound;
+      document.getElementById('total-rounds-indicator').textContent = totalRounds;
+      document.getElementById('timer-text').textContent = timeLeft;
+      document.getElementById('timer-text').classList.remove('urgent');
+      document.getElementById('hint-text').textContent = '';
+      document.getElementById('play-logo').src = currentLogo.image_url;
+      document.getElementById('force-hint-btn').style.display = 'block';
+      
+      renderPlayersGrid();
+      showScreen('play');
+      
+      clearInterval(timerInterval);
+      timerInterval = setInterval(gameTick, 1000);
+    }
+
+    function gameTick() {
+      timeLeft--;
+      const timerEl = document.getElementById('timer-text');
+      timerEl.textContent = timeLeft;
+      
+      if (timeLeft === 7 && !hintRevealed) {
+         triggerHint();
+      }
+
+      if (timeLeft <= 3 && timeLeft > 0) {
+        timerEl.classList.add('urgent');
+        soundUrgent();
+      } else if (timeLeft > 3 && timeLeft !== 7) {
+        soundTick();
+      }
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerEl.textContent = 'انتهى الوقت!';
+        soundLose();
+        showResultScreen(null, false);
+      }
+    }
+
+    function forceHint() {
+      if(!hintRevealed) triggerHint();
+    }
+
+    function triggerHint() {
+      hintRevealed = true;
+      pointsAvailable = 1;
+      soundHint();
+      document.getElementById('force-hint-btn').style.display = 'none';
+      
+      const ans = currentLogo.answer;
+      let hintStr = ans.substring(0, 2) + " ".padEnd(ans.length - 2, "_").replace(/ /g, " _ ");
+      document.getElementById('hint-text').textContent = \`التلميح: \${hintStr} (\${ans.length} حروف)\`;
+      
+      renderPlayersGrid(); // refresh to show +1
+    }
+
+    function renderPlayersGrid() {
+      const grid = document.getElementById('players-grid');
+      grid.innerHTML = '';
+      players.forEach(p => {
+        grid.innerHTML += \`
+          <button class="player-btn" onclick="awardPoints(\${p.id})">
+            <span>\${p.name}</span>
+            <span class="pts">+\${pointsAvailable} نقاط</span>
+          </button>\`;
+      });
+    }
+
+    function awardPoints(playerId) {
+      clearInterval(timerInterval);
+      soundWin();
+      
+      const p = players.find(x => x.id === playerId);
+      if (p) {
+        p.score += pointsAvailable;
+        lastWinnerId = playerId;
+        lastPointsAwarded = pointsAvailable;
+        showResultScreen(p.name, true);
+      }
+    }
+
+    function showResultScreen(winnerName, wasSuccess) {
+      clearInterval(timerInterval);
+      document.getElementById('result-answer-text').textContent = currentLogo.answer;
+      
+      if (wasSuccess) {
+        document.getElementById('result-title').textContent = 'إجابة صحيحة! 🎉';
+        document.getElementById('result-winner').textContent = winnerName;
+        document.getElementById('result-points').textContent = lastPointsAwarded;
+        document.getElementById('result-winner').parentElement.style.display = 'block';
+      } else {
+        document.getElementById('result-title').textContent = 'انتهى الوقت! ⏰';
+        document.getElementById('result-winner').parentElement.style.display = 'none';
+      }
+      
+      showScreen('result');
+    }
+
+    function skipLogo() {
+      clearInterval(timerInterval);
+      lastWinnerId = null;
+      showResultScreen(null, false);
+    }
+
+    function undoLastPoint() {
+       if (lastWinnerId !== null) {
+          const p = players.find(x => x.id === lastWinnerId);
+          if (p) {
+             p.score -= lastPointsAwarded;
+             // Go back to ready screen for the SAME round
+             // Basically re-do this round with a new logo to be fair?
+             // Actually, if it was an undo, maybe just skip to next round without points.
+             alert('تم إلغاء النقطة بنجاح.');
+             lastWinnerId = null;
+             document.getElementById('result-winner').textContent = '--';
+          }
+       } else {
+          alert('لا يوجد إجراء للتراجع عنه.');
+       }
+    }
+
+    function showLeaderboard(isFinal = false) {
+      clearInterval(timerInterval); // just in case
+      const sorted = [...players].sort((a,b) => b.score - a.score);
+      const container = document.getElementById('lb-container');
+      container.innerHTML = '';
+      
+      sorted.forEach((p, idx) => {
+        container.innerHTML += \`
+          <div class="lb-item \${idx === 0 ? 'first' : ''}">
+            <div style="font-weight: 900; font-size: 20px; color: var(--primary); width: 30px;">#\${idx+1}</div>
+            <div class="lb-name">\${p.name}</div>
+            <div class="lb-score">\${p.score}</div>
+          </div>
+        \`;
+      });
+      
+      if(isFinal) {
+         document.getElementById('lb-next-btn').style.display = 'none';
+      } else {
+         document.getElementById('lb-next-btn').style.display = 'block';
+      }
+      
+      showScreen('leaderboard');
+    }
+
+    function showFinalWinner() {
+       const sorted = [...players].sort((a,b) => b.score - a.score);
+       const winner = sorted[0];
+       document.getElementById('winner-name').textContent = winner.name;
+       document.getElementById('winner-score').textContent = winner.score;
+       document.getElementById('lb-top-btn').style.display = 'none';
+       showScreen('winner');
+    }
+
+  </script>
+</body>
+</html>
+`;
+
+fs.writeFileSync('c:\\Users\\user\\Desktop\\my farst game\\games\\guess-logo.html', htmlTemplate, 'utf8');
+console.log('Game created!');

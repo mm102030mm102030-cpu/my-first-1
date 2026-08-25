@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <link rel="stylesheet" href="../css/theme-override.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تحدي الثلاثين</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #020617;
+      --primary: #f59e0b;
+      --primary-dark: #b45309;
+      --secondary: #3b82f6;
+      --accent: #ef4444;
+      --success: #10b981;
+      --card-bg: rgba(30, 41, 59, 0.8);
+      --text: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    
+    body {
+      font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text);
+      overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column;
+      background-image: radial-gradient(circle at top right, rgba(245, 158, 11, 0.1), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.1), transparent 40%);
+    }
+
+    .top-nav {
+      position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-between;
+      padding: 0 20px; z-index: 100; pointer-events: none;
+    }
+    
+    .support-btn { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); }
+
+    .game-container {
+      flex: 1; display: flex; flex-direction: column; padding: 80px 20px 100px;
+      max-width: 600px; margin: 0 auto; width: 100%;
+     padding-bottom: 100px !important; }
+
+    .screen { display: none; flex-direction: column; flex: 1; animation: fadeIn 0.3s ease; text-align: center; }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .title { font-size: 36px; font-weight: 900; margin-bottom: 20px; color: var(--primary); text-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); }
+    
+    .card {
+      background: var(--card-bg); border-radius: 24px; padding: 30px; margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .input-group { margin-bottom: 15px; text-align: right; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #cbd5e1; }
+    .input-field {
+      width: 100%; padding: 15px; border-radius: 12px; background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.1); color: white; font-family: 'Tajawal', sans-serif;
+      font-size: 16px; transition: all 0.3s;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.5); }
+
+    .btn {
+      width: 100%; padding: 18px; border-radius: 16px; background: var(--primary);
+      color: white; border: none; font-family: 'Tajawal', sans-serif; font-size: 22px;
+      font-weight: 900; box-shadow: 0 6px 0 var(--primary-dark); cursor: pointer;
+      transition: all 0.1s; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn:active { transform: translateY(6px); box-shadow: 0 0px 0 var(--primary-dark); }
+    .btn.secondary { background: var(--secondary); box-shadow: 0 6px 0 #1d4ed8; }
+    .btn.secondary:active { box-shadow: 0 0px 0 #1d4ed8; }
+    .btn.danger { background: var(--accent); box-shadow: 0 6px 0 #b91c1c; }
+    .btn.danger:active { box-shadow: 0 0px 0 #b91c1c; }
+    .btn.success { background: var(--success); box-shadow: 0 6px 0 #047857; }
+    .btn.success:active { box-shadow: 0 0px 0 #047857; }
+
+    /* Topic Reveal */
+    .topic-box { font-size: 32px; font-weight: 900; color: white; padding: 40px 20px; background: rgba(245,158,11,0.2); border-radius: 20px; border: 2px solid var(--primary); margin: 20px 0; }
+
+    /* Auction Controls */
+    .auction-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+    .bid-display { font-size: 60px; font-weight: 900; color: var(--primary); margin: 10px 0; }
+    .bidder-name { font-size: 24px; color: var(--secondary); font-weight: bold; }
+
+    /* Perks */
+    .perk-card {
+      background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px;
+      padding: 20px; margin-bottom: 15px; cursor: pointer; transition: all 0.2s;
+    }
+    .perk-card:active { transform: scale(0.95); }
+    .perk-card.selected { border-color: var(--primary); background: rgba(245,158,11,0.2); }
+
+    /* Timer & Counter */
+    .timer-display { font-size: 80px; font-weight: 900; color: white; font-variant-numeric: tabular-nums; line-height: 1; margin: 20px 0; }
+    .timer-display.danger { color: var(--accent); animation: heartbeat 0.5s infinite alternate; }
+    @keyframes heartbeat { from { transform: scale(1); } to { transform: scale(1.1); } }
+    
+    .counter-btn {
+      width: 150px; height: 150px; border-radius: 50%; background: var(--success);
+      color: white; font-size: 60px; font-weight: 900; border: none; cursor: pointer;
+      box-shadow: 0 10px 0 #047857, 0 20px 30px rgba(0,0,0,0.5); transition: all 0.1s;
+      margin: 20px auto; display: flex; align-items: center; justify-content: center;
+    }
+    .counter-btn:active { transform: translateY(10px); box-shadow: 0 0px 0 #047857, 0 10px 10px rgba(0,0,0,0.5); }
+    .target-box { font-size: 20px; opacity: 0.8; margin-top: 20px; }
+
+    /* Leaderboard */
+    .lb-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(0,0,0,0.3); padding: 15px 20px; border-radius: 12px; margin-bottom: 10px;
+    }
+    .lb-item.first { border: 2px solid var(--primary); background: rgba(245,158,11,0.1); }
+    .lb-rank { font-weight: 900; font-size: 20px; color: var(--primary); width: 30px; }
+    .lb-name { flex: 1; font-weight: bold; font-size: 18px; text-align: right; margin-right: 15px; }
+    .lb-score { font-weight: 900; font-size: 24px; color: white; }
+    .lb-msg { font-size: 14px; color: var(--secondary); margin-top: 5px; text-align: right; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+.top-bar > * { pointer-events: auto; }
+.top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+.top-btn:hover { background: rgba(255,255,255,0.2); }
+  </style>
+<script src="../js/protection.js"></script>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    
+    <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">تحدي الثلاثين</div>
+</div>
+  <div class="top-nav">
+    
+    
+  </div>
+
+  <div class="game-container">
+    
+    <!-- PHASE 1: TUTORIAL -->
+    <div id="screen-tutorial" class="screen active">
+      <h1 class="title">تحدي الثلاثين ⏱️</h1>
+      <div class="card">
+        <h3 style="color:var(--primary); margin-bottom:15px; font-size:24px;">كيف نلعب؟</h3>
+        <p style="font-size:16px; margin-bottom:10px; line-height:1.6; text-align:right;">
+          1️⃣ <strong>الموضوع:</strong> يظهر موضوع عشوائي للجميع.<br>
+          2️⃣ <strong>المزاد:</strong> كل لاعب يقول كم إجابة يقدر يذكر في 30 ثانية. المزايدة تستمر لحد ما ينسحب الجميع ويبقى شخص واحد!<br>
+          3️⃣ <strong>التحدي:</strong> يبدأ الوقت، والباقين يعدون إجاباته. إذا جاب الرقم أو أكثر يكسب نقطة، وإذا ما قدر يخسر نقطة.<br>
+          🏆 الفائز هو أول من يجمع النقاط المطلوبة!
+        </p>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="showScreen('setup')">فهمت، ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- PHASE 2: SETUP -->
+    <div id="screen-setup" class="screen">
+      <h1 class="title">إعداد الجلسة ⚙️</h1>
+      <div class="card">
+        <div class="input-group">
+          <label>النقاط للفوز</label>
+          <input type="number" id="target-score" class="input-field" value="5" min="1" max="20">
+        </div>
+        <div class="input-group">
+          <label>عدد اللاعبين (2+)</label>
+          <input type="number" id="players-count" class="input-field" value="3" min="2"  onchange="renderPlayerInputs()">
+        </div>
+        <div id="players-names-container"></div>
+      </div>
+      <button class="btn" onclick="startGame()">ابدأ المزاد 🔨</button>
+    </div>
+
+    <!-- PHASE 3: TOPIC -->
+    <div id="screen-topic" class="screen">
+      <h1 class="title">موضوع الجولة 🎲</h1>
+      <div class="card">
+        <p style="font-size: 18px; opacity:0.8;">المطلوب ذكر أشياء تتعلق بـ:</p>
+        <div class="topic-box" id="topic-text">--</div>
+        <p style="color:var(--secondary); font-weight:bold;">جهزوا أنفسكم للمزاد!</p>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="startAuction()">دخول المزاد 🔨</button>
+    </div>
+
+    <!-- PHASE 4: AUCTION -->
+    <div id="screen-auction" class="screen">
+      <h1 class="title">المزاد 🔨</h1>
+      <div class="card">
+        <p style="font-size: 18px;">الموضوع: <strong id="auction-topic" style="color:var(--primary);">--</strong></p>
+        <div class="bid-display" id="current-bid">0</div>
+        <p style="opacity: 0.8;">أعلى رقم مطلوب حتى الآن</p>
+        <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0;">
+        <p>دور اللاعب:</p>
+        <div class="bidder-name" id="current-bidder">--</div>
+        
+        <div class="auction-controls" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+          <button class="btn success" onclick="raiseBid(1)">أزيد +1 ⬆️</button>
+          <button class="btn secondary" onclick="raiseBid(5)">أزيد +5 🚀</button>
+          <button class="btn danger" style="grid-column: span 2;" onclick="passBid()">انسحاب 🏳️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 5: PERKS -->
+    <div id="screen-perks" class="screen">
+      <h1 class="title">كروت المفاجآت 🃏</h1>
+      <div class="card">
+        <p style="margin-bottom: 20px;">لقد فزت بالمزاد ولديك رصيد كروت! اختر كرت للاستخدام (أو تخطى):</p>
+        
+        <div class="perk-card" id="perk-time" onclick="selectPerk('time')">
+          <h3 style="color:var(--success);">⏳ +10 ثواني</h3>
+          <p style="font-size:14px; opacity:0.8;">ارفع وقت التحدي من 30 إلى 40 ثانية.</p>
+        </div>
+        
+        <div class="perk-card" id="perk-entrap" onclick="selectPerk('entrap')">
+          <h3 style="color:var(--accent);">😈 ورّطه!</h3>
+          <p style="font-size:14px; opacity:0.8;">اختر لاعباً آخر ليقوم بالتحدي بدلاً منك!</p>
+          <select id="entrap-target" class="input-field" style="margin-top:10px; display:none; padding:10px;"></select>
+        </div>
+      </div>
+      <button class="btn secondary" id="btn-use-perk" onclick="usePerk()" style="display:none;">استخدم الكرت 🃏</button>
+      <button class="btn" style="background:transparent; border:2px solid var(--primary); margin-top:10px;" onclick="skipPerks()">بدون كروت (تخطي) ➡</button>
+    </div>
+
+    <!-- PHASE 6: CHALLENGE -->
+    <div id="screen-challenge" class="screen">
+      <h1 class="title">التحدي ⏱️</h1>
+      <p style="font-size:20px;">اللاعب المتحدي: <strong id="challenger-name" style="color:var(--primary);">--</strong></p>
+      
+      <div class="timer-display" id="timer-text">30</div>
+      
+      <div id="challenge-active-ui" style="display:none;">
+        <button class="counter-btn" id="counter-btn" onclick="incrementCount()">0</button>
+        <p class="target-box">الهدف: <strong id="target-bid" style="color:var(--primary); font-size:24px;">0</strong></p>
+        <p style="font-size:14px; opacity:0.7; margin-top:10px;">(اضغط على الزر الأخضر مع كل إجابة صحيحة)</p>
+      </div>
+
+      <button class="btn" id="btn-start-challenge" style="margin-top:auto;" onclick="startChallenge()">أنا جاهز، ابدأ! 🚀</button>
+    </div>
+
+    <!-- PHASE 7: JUDGE -->
+    <div id="screen-judge" class="screen">
+      <h1 class="title">التحكيم ⚖️</h1>
+      <div class="card">
+        <h2 style="margin-bottom:10px;" id="judge-name">--</h2>
+        <p style="font-size:20px; color:var(--primary); font-weight:bold; margin-bottom:10px;">الهدف: <span id="judge-target">0</span> | الإجابات: <span id="judge-count">0</span></p>
+        
+        <p style="font-size:18px; margin:20px 0;">هل كانت الإجابات صحيحة ومقبولة ولا يوجد غش؟</p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+          <button class="btn danger" onclick="submitJudge(false)">لا، غشاش! ❌</button>
+          <button class="btn success" onclick="submitJudge(true)">نعم، بطل! ✅</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 8: LEADERBOARD -->
+    <div id="screen-leaderboard" class="screen">
+      <h1 class="title">ترتيب النقاط 🏆</h1>
+      <div class="card" id="lb-container" style="padding: 15px;">
+        <!-- Injected LB -->
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="nextRound()">الجولة التالية ➡</button>
+    </div>
+
+    <!-- PHASE 9: WINNER -->
+    <div id="screen-winner" class="screen">
+      <h1 class="title" style="font-size:48px;">مبروووك! 🎉</h1>
+      <div class="card">
+        <h2 style="font-size:40px; color:var(--primary); margin-bottom:20px;" id="winner-name">--</h2>
+        <p style="font-size:20px;">هو بطل "تحدي الثلاثين" وحقق النقاط المطلوبة!</p>
+      </div>
+      <button class="btn" style="margin-top:auto;" onclick="window.location.href='../lobby.html'">الرئيسية 🏠</button>
+    </div>
+
+  </div>
+
+  <script>
+    
+
+    const TOPICS = [
+      "عواصم دول عربية", "ماركات سيارات", "أكلات", "مهن", "عملات دول", 
+      "لاعبين كرة قدم", "أشياء تجدها في المطبخ", "تطبيقات أو ألعاب فيديو", 
+      "شركات تصنيع جوالات", "أندية كرة قدم عربية أو عالمية", 
+      "شخصيات كرتون أو أنمي مشهورة", "يوتيوبرز عربي أو أجنبي", "حيوانات تطير", 
+      "حيوانات تعيش في الماء", "مطاعم", "أنواع فواكه أو خضار", "مشروبات غازية", 
+      "أثاث منزلي", "أبطال خارقين", "أنبياء ورسل", "ممثلين أو ممثلات", 
+      "أفلام أو مسلسلات", "حيوانات عندها أربعة أرجل", "حيوانات منقرضة"
+    ];
+
+    let players = []; // { name, score, hasCard }
+    let targetScore = 5;
+    let currentTopic = "";
+    
+    let activeBidders = []; // indices of players
+    let currentBid = 0;
+    let turnIndex = 0; // index in activeBidders
+    
+    let auctionWinner = -1;
+    let finalChallenger = -1;
+    let challengeTime = 30;
+    let countedAnswers = 0;
+    
+    let selectedPerk = null;
+    let timerInterval;
+
+    // Audio Context (Beeps)
+    let audioCtx;
+    function playBeep(freq, type, duration) {
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    function soundTick() { playBeep(800, 'sine', 0.1); }
+    function soundHeartbeat() { playBeep(100, 'triangle', 0.3); }
+    function soundHorn() { playBeep(300, 'sawtooth', 1.0); }
+    function soundWin() { playBeep(600, 'sine', 0.2); setTimeout(()=>playBeep(800, 'sine', 0.4), 200); }
+    function soundLose() { playBeep(200, 'sawtooth', 0.5); setTimeout(()=>playBeep(150, 'sawtooth', 0.8), 400); }
+
+    function renderPlayerInputs() {
+      const count = Math.max(2, parseInt(document.getElementById('players-count').value));
+      const container = document.getElementById('players-names-container');
+      container.innerHTML = '';
+      for(let i=0; i<count; i++) {
+        container.innerHTML += `<div class="input-group"><input type="text" class="input-field player-inp" placeholder="اسم اللاعب ${i+1}" required></div>`;
+      }
+    }
+    renderPlayerInputs();
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-'+id).classList.add('active');
+    }
+
+    function startGame() {
+      const inputs = document.querySelectorAll('.player-inp');
+      players = Array.from(inputs).map((inp, i) => ({ name: inp.value.trim() || `اللاعب ${i+1}`, score: 0, hasCard: false }));
+      targetScore = Math.max(1, parseInt(document.getElementById('target-score').value));
+      nextRound();
+    }
+
+    function nextRound() {
+      currentTopic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+      document.getElementById('topic-text').textContent = currentTopic;
+      showScreen('topic');
+    }
+
+    function startAuction() {
+      currentBid = 0;
+      activeBidders = players.map((_, i) => i); // all players
+      turnIndex = 0;
+      updateAuctionUI();
+      showScreen('auction');
+    }
+
+    function updateAuctionUI() {
+      document.getElementById('auction-topic').textContent = currentTopic;
+      document.getElementById('current-bid').textContent = currentBid;
+      document.getElementById('current-bidder').textContent = players[activeBidders[turnIndex]].name;
+    }
+
+    function raiseBid(amount = 1) {
+      currentBid += amount;
+      turnIndex = (turnIndex + 1) % activeBidders.length;
+      checkAuctionEnd();
+    }
+
+    function passBid() {
+      activeBidders.splice(turnIndex, 1);
+      if (turnIndex >= activeBidders.length) turnIndex = 0;
+      checkAuctionEnd();
+    }
+
+    function checkAuctionEnd() {
+      if (activeBidders.length === 1) {
+        auctionWinner = activeBidders[0];
+        finalChallenger = auctionWinner;
+        challengeTime = 30;
+        setupChallenge();
+      } else {
+        updateAuctionUI();
+      }
+    }
+
+    function preparePerks() {
+      selectedPerk = null;
+      document.querySelectorAll('.perk-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('btn-use-perk').style.display = 'none';
+      
+      // Populate entrap targets
+      const select = document.getElementById('entrap-target');
+      select.innerHTML = '';
+      players.forEach((p, i) => {
+        if (i !== auctionWinner) select.innerHTML += `<option value="${i}">${p.name}</option>`;
+      });
+      
+      showScreen('perks');
+    }
+
+    function selectPerk(type) {
+      selectedPerk = type;
+      document.querySelectorAll('.perk-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('perk-' + type).classList.add('selected');
+      document.getElementById('entrap-target').style.display = type === 'entrap' ? 'block' : 'none';
+      document.getElementById('btn-use-perk').style.display = 'block';
+    }
+
+    function usePerk() {
+      if(!selectedPerk) return;
+      players[auctionWinner].hasCard = false; // consume card
+      
+      if (selectedPerk === 'time') {
+        challengeTime = 40;
+      } else if (selectedPerk === 'entrap') {
+        finalChallenger = parseInt(document.getElementById('entrap-target').value);
+      }
+      setupChallenge();
+    }
+
+    function skipPerks() {
+      players[auctionWinner].hasCard = false;
+      setupChallenge();
+    }
+
+    function setupChallenge() {
+      countedAnswers = 0;
+      document.getElementById('challenger-name').textContent = players[finalChallenger].name;
+      document.getElementById('timer-text').textContent = challengeTime;
+      document.getElementById('timer-text').classList.remove('danger');
+      document.getElementById('btn-start-challenge').style.display = 'block';
+      document.getElementById('challenge-active-ui').style.display = 'none';
+      document.getElementById('target-bid').textContent = currentBid;
+      document.getElementById('counter-btn').textContent = 0;
+      showScreen('challenge');
+    }
+
+    function startChallenge() {
+      document.getElementById('btn-start-challenge').style.display = 'none';
+      document.getElementById('challenge-active-ui').style.display = 'block';
+      
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      
+      let timeLeft = challengeTime;
+      document.getElementById('timer-text').textContent = timeLeft;
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        const timerEl = document.getElementById('timer-text');
+        timerEl.textContent = timeLeft;
+        
+        if (timeLeft <= 10 && timeLeft > 0) {
+          timerEl.classList.add('danger');
+          soundHeartbeat();
+        } else {
+          soundTick();
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          soundHorn();
+          setTimeout(showJudge, 1000);
+        }
+      }, 1000);
+    }
+
+    function incrementCount() {
+      countedAnswers++;
+      document.getElementById('counter-btn').textContent = countedAnswers;
+      playBeep(400, 'sine', 0.1);
+      
+      if (countedAnswers >= currentBid) {
+        clearInterval(timerInterval);
+        soundWin();
+        setTimeout(showJudge, 500);
+      }
+    }
+
+    function showJudge() {
+      document.getElementById('judge-name').textContent = players[finalChallenger].name;
+      document.getElementById('judge-target').textContent = currentBid;
+      document.getElementById('judge-count').textContent = countedAnswers;
+      showScreen('judge');
+    }
+
+    function submitJudge(isValid) {
+      if (isValid && countedAnswers >= currentBid) {
+        players[finalChallenger].score++;
+        soundWin();
+      } else {
+        players[finalChallenger].score = Math.max(0, players[finalChallenger].score - 1);
+        soundLose();
+      }
+      checkWinCondition();
+    }
+
+    function checkWinCondition() {
+      const winner = players.find(p => p.score >= targetScore);
+      if (winner) {
+        document.getElementById('winner-name').textContent = winner.name;
+        showScreen('winner');
+      } else {
+        showLeaderboard();
+      }
+    }
+
+    function showLeaderboard() {
+      const sorted = [...players].map((p,i) => ({...p, id:i})).sort((a,b) => b.score - a.score);
+      const container = document.getElementById('lb-container');
+      container.innerHTML = '';
+      
+      sorted.forEach((p, idx) => {
+        const left = targetScore - p.score;
+        const msg = left > 0 ? `(باقي ${left} نقطة)` : "فائز!";
+        container.innerHTML += `
+          <div class="lb-item ${idx === 0 ? 'first' : ''}">
+            <div class="lb-rank">#${idx+1}</div>
+            <div class="lb-name">${p.name}<div class="lb-msg">${msg} ${p.hasCard ? '🃏' : ''}</div></div>
+            <div class="lb-score">${p.score}</div>
+          </div>
+        `;
+      });
+      showScreen('leaderboard');
+    }
+
+  </script>
+
+  <script>
+    /* Auth Guard */
+    (function() {
+      try { var u = localStorage.getItem('rafiq_user'); if (!u) { window.location.replace('../index.html'); } } catch(e) {}
+    })();
+    /* Prevent context menu */
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+  </script>
+
+  <script>
+function confirmExit() { let modal = document.getElementById('custom-exit-modal'); if (!modal) { modal = document.createElement('div'); modal.id = 'custom-exit-modal'; modal.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:100000; display:flex; justify-content:center; align-items:center;"><div style="background:#1e293b; padding:30px; border-radius:24px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"><div style="font-size:50px; margin-bottom:10px; line-height:1;">🚪</div><h3 style="color:white; font-size:24px; font-weight:900; font-family:\'Tajawal\', sans-serif; margin-bottom:10px;">تأكيد الخروج</h3><p style="color:#94a3b8; font-size:16px; font-family:\'Tajawal\', sans-serif; margin-bottom:25px; line-height:1.5;">هل أنت متأكد من رغبتك بالخروج؟<br>سيتم فقدان التقدم الحالي في اللعبة.</p><div style="display:flex; gap:12px; justify-content:center;"><button onclick="window.location.href=\'../lobby.html\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#ef4444; color:white; box-shadow:0 6px 0 #b91c1c; transition:all 0.2s;">نعم، خروج</button><button onclick="document.getElementById(\'custom-exit-modal\').style.display=\'none\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#475569; color:white; box-shadow:0 6px 0 #334155; transition:all 0.2s;">إلغاء</button></div></div></div><style>@keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } } #custom-exit-modal button:active { transform: translateY(4px); box-shadow: none !important; }</style>'; document.body.appendChild(modal); } modal.style.display = 'flex'; }
+</script>
+</body>
+
+</html>

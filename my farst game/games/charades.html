@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <link rel="stylesheet" href="../css/theme-override.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>بدون كلام 🎭</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #0f172a; color: white; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+    .screen { display: none; flex-direction: column; min-height: 100vh; padding: 20px; padding-top: 80px; align-items: center; text-align: center; }
+    .screen.active { display: flex; animation: fadeIn 0.3s ease-out; }
+
+    
+    /* Setup Screen */
+    .setup-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; width: 100%; max-width: 500px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+    .input-field { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-family: 'Tajawal'; font-size: 16px; margin-bottom: 10px; }
+    
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; margin-top: 15px; }
+    .cat-btn { 
+      background: #2a3143; border: 2px solid #3b4256; padding: 24px 10px 16px; border-radius: 16px; color: #94a3b8; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .cat-btn:hover { background: #333c52; transform: translateY(-4px); }
+    .cat-icon { font-size: 42px; line-height: 1; filter: grayscale(100%) opacity(50%); transition: 0.3s; }
+    .cat-text { font-size: 15px; font-weight: 800; transition: 0.3s; }
+    
+    .cat-btn.selected { 
+      background: linear-gradient(135deg, #f43f5e, #e11d48); border-color: #fb7185; color: white;
+      box-shadow: 0 8px 25px rgba(225, 29, 72, 0.4); transform: scale(1.05);
+    }
+    .cat-btn.selected .cat-icon { filter: none; drop-shadow: 0 6px 10px rgba(0,0,0,0.3); }
+    .cat-btn.selected .cat-text { color: white; }
+    
+    .cat-btn::before {
+      content: '✕'; position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #1e293b; color: #64748b; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #0f172a; transition: 0.3s; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .cat-btn.selected::before {
+      content: '✓'; background: #22c55e; color: white; border-color: white; font-size: 14px;
+    }
+    
+    .btn { background: #6366f1; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); margin-top: auto; }
+    
+    /* Turn Screen */
+    .turn-box { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); padding: 40px 20px; border-radius: 20px; width: 100%; max-width: 400px; cursor: pointer; user-select: none; transition: 0.3s; position: relative; overflow: hidden; }
+    .turn-box:active { transform: scale(0.98); background: rgba(255,255,255,0.1); }
+    .secret-word { font-size: 32px; font-weight: 900; margin: 20px 0; color: #facc15; display: none; }
+    .secret-cat { font-size: 16px; color: #94a3b8; display: none; }
+    .instruction-text { font-size: 18px; color: #cbd5e1; }
+    
+    /* Play Screen */
+    .timer-circle { width: 150px; height: 150px; border-radius: 50%; border: 8px solid #6366f1; display: flex; justify-content: center; align-items: center; font-size: 48px; font-weight: 900; margin: 30px auto; transition: 0.3s; }
+    .timer-circle.danger { border-color: #ef4444; color: #ef4444; animation: pulse 1s infinite; }
+    
+    .action-grid { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; max-width: 400px; margin-top: 30px; }
+    .btn-success { background: #22c55e; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+    .btn-danger { background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+    
+    /* Steal Screen */
+    #screen-steal { background: linear-gradient(135deg, #7f1d1d, #ea580c); }
+    .steal-timer { font-size: 60px; font-weight: 900; text-shadow: 0 4px 10px rgba(0,0,0,0.5); margin: 30px 0; }
+    
+    /* Scoreboard */
+    .score-board { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; width: 100%; max-width: 400px; }
+    .team-score { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; flex: 1; border: 1px solid rgba(255,255,255,0.1); }
+    .team-name { font-size: 14px; color: #94a3b8; margin-bottom: 5px; }
+    .team-pts { font-size: 28px; font-weight: 900; }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: absolute; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+.top-bar > * { pointer-events: auto; }
+.top-btn { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; border: none; font-family: 'Tajawal', sans-serif; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+.top-btn:hover { background: rgba(255,255,255,0.2); }
+  </style>
+<script src="../js/protection.js"></script>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="confirmExit()" class="top-btn">🏠 الرئيسية</button>
+    
+    <div style="font-weight: 900; letter-spacing: -0.5px; font-size: 20px; text-shadow: 0 4px 0 rgba(0,0,0,0.3); color: #fff;">بدون كلام 🎭</div>
+</div>
+
+  <!-- Audio Elements -->
+  <audio id="sfx-ding" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg" preload="auto"></audio>
+  <audio id="sfx-tick" src="https://actions.google.com/sounds/v1/foley/clock_ticking.ogg" preload="auto" loop></audio>
+  <audio id="sfx-buzzer" src="https://actions.google.com/sounds/v1/alarms/buzzer_alarm.ogg" preload="auto"></audio>
+  <audio id="sfx-siren" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+
+
+  <!-- SCREEN 1: SETUP -->
+  <div id="screen-setup" class="screen active">
+    <h1 style="font-size:28px; margin-bottom:20px;">إعدادات اللعبة ⚙️</h1>
+    
+    <div class="setup-card">
+      <p style="margin-bottom:10px; color:#94a3b8; text-align:right;">الفرق (الفوز من 5 نقاط)</p>
+      <input type="text" id="team1-name" class="input-field" placeholder="فريق أ" value="">
+      <input type="text" id="team2-name" class="input-field" placeholder="فريق ب" value="">
+    </div>
+
+    <div class="setup-card">
+      <p style="margin-bottom:10px; color:#94a3b8; text-align:right;">الفئات المطلوبة</p>
+      <div class="category-grid" id="category-grid">
+        <!-- JS will populate -->
+      </div>
+    </div>
+    
+    <div class="setup-card">
+      <p style="margin-bottom:10px; color:#94a3b8; text-align:right;">كلمات مخصصة (اختياري لجولة اليوم)</p>
+      <textarea id="custom-words" class="input-field" style="resize:none; height:80px;" placeholder="اكتب كلمات مفصولة بفاصلة (مثال: سيارة, كورة, بحر)"></textarea>
+    </div>
+
+    <button class="btn" onclick="startGame()">ابدأ اللعبة 🚀</button>
+  </div>
+
+  <!-- SCREEN 2: TURN REVEAL -->
+  <div id="screen-turn" class="screen">
+    <div class="score-board" id="sb-turn"></div>
+    <h2 style="margin:20px 0;" id="turn-title">دور فريق أ</h2>
+    <p style="color:#94a3b8; margin-bottom:30px;">(أعطِ الجوال للممثل فقط 🤫)</p>
+    
+    <div class="turn-box" id="reveal-box" onpointerdown="revealWord()" onpointerup="hideWord()" onpointerleave="hideWord()">
+      <div class="instruction-text" id="reveal-inst">اضغط مطولاً لكشف الكلمة سراً 👁️</div>
+      <div class="secret-cat" id="secret-cat">--</div>
+      <div class="secret-word" id="secret-word">--</div>
+    </div>
+    
+    <button class="btn" style="margin-top:40px;" onclick="startPlayPhase()">ابدأ المؤقت (02:00) ⏳</button>
+  </div>
+
+  <!-- SCREEN 3: PLAY PHASE -->
+  <div id="screen-play" class="screen">
+    <div class="score-board" id="sb-play"></div>
+    <h2 style="margin:10px 0;" id="play-team-name">فريق أ يمثل الآن!</h2>
+    <p style="color:#94a3b8;">الفريق الآخر يراقب المؤقت ⏰</p>
+    
+    <div class="timer-circle" id="main-timer">02:00</div>
+    
+    <div class="action-grid">
+      <button class="btn btn-success" onclick="correctAnswer(false)">عرفوها! (+1 نقطة) ✅</button>
+      <button class="btn btn-danger" onclick="surrender()">تخطي / استسلام ⏭️</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: STEAL PHASE -->
+  <div id="screen-steal" class="screen">
+    <h1 style="font-size:32px; margin-bottom:10px;">🚨 فرصة سرقة! 🚨</h1>
+    <h2 id="steal-team-name">لفريق ب</h2>
+    
+    <div class="steal-timer" id="steal-timer">30</div>
+    
+    <p style="font-size:18px; margin-bottom:30px;">فكروا بسرعة! جواب واحد فقط!</p>
+    
+    <div class="action-grid">
+      <button class="btn btn-success" onclick="correctAnswer(true)">إجابة صحيحة (+1 نقطة) 🎯</button>
+      <button class="btn" style="background:rgba(0,0,0,0.5);" onclick="wrongSteal()">إجابة خاطئة (0 نقاط) ❌</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: WINNER -->
+  <div id="screen-winner" class="screen" style="justify-content:center;">
+    <div style="font-size:80px; margin-bottom:20px;">🏆</div>
+    <h1 class="title" style="font-size:42px;">الفائز!</h1>
+    <div id="winner-name" style="font-size:32px; font-weight:bold; margin:20px 0; color:#facc15;">--</div>
+    <button class="btn" style="margin-top:40px;" onclick="window.location.href='../lobby.html'">الرئيسية 🏠</button>
+  </div>
+
+  <script>
+    // Confirmation before exit
+    
+
+    // ============================
+    // DATABASE
+    // ============================
+    const DB = {
+      "🎬 أفلام": [
+        "الأسد الملك", "تيتانيك", "أفاتار", "الجوكر", "سبايدرمان", "باتمان", "عمر المختار", "الماتريكس", "فيلم الرسالة", "المنتقمون",
+        "هاري بوتر", "قراصنة الكاريبي", "فروزن", "الحديقة الجوراسية", "سيد الخواتم", "حرب النجوم", "شريك", "نيمو", "شركة المرعبين المحدودة",
+        "ابن حميدو", "عريس من جهة أمنية", "الناظر", "همام في أمستردام", "صعيدي في الجامعة الأمريكية", "الجزيرة", "ولاد رزق"
+      ],
+      "📺 مسلسلات": [
+        "صراع العروش", "مرايا", "باب الحارة", "طاش ما طاش", "شباب البومب", "ضيعة ضايعة", "لعبة الحبار", "البروفيسور", "بريزون بريك",
+        "فريندز", "عمر بن الخطاب", "الهيبة", "العاصوف", "سيلفي", "طريق", "خمسة ونص", "للموت", "وينزداي", "سترينجر ثينغز", "فايكنجز"
+      ],
+      "💡 أمثال شعبية": [
+        "عصفور في اليد خير من عشرة على الشجرة", "اللي ما يعرف الصقر يشويه", "الطول طول نخلة والعقل عقل سخلة", "الباب اللي يجيك منه الريح سده واستريح",
+        "ضربني وبكى سبقني واشتكى", "يا جبل ما يهزك ريح", "على قد لحافك مد رجليك", "القرد في عين أمه غزال", "الطيور على أشكالها تقع",
+        "من حفر حفرة لأخيه وقع فيها", "الصديق وقت الضيق", "الوقت كالسيف إن لم تقطعه قطعك", "أعط الخباز خبزه ولو أكل نصفه", "كل فتاة بأبيها معجبة"
+      ],
+      "🎵 أغاني": [
+        "الأماكن", "يا طيب القلب", "يا مسهرني", "أنت عمري", "مقادير", "يا حبيبي لا تروح", "أنا الشاكي", "بنت أكابر", "تملي معاك", "يا هلالي",
+        "بشرة خير", "ديسباسيتو", "شكل للبيع", "أهواك", "حبيبي يا نور العين", "يا غايب", "يا بتاع النعناع", "ساعات ساعات", "ألف ليلة وليلة"
+      ],
+      "🌍 مدن ودول": [
+        "الرياض", "القاهرة", "دبي", "باريس", "لندن", "نيويورك", "طوكيو", "بغداد", "دمشق", "عمان", "القدس", "مدريد", "برلين",
+        "روما", "مكة المكرمة", "المدينة المنورة", "جدة", "الإسكندرية", "الكويت", "الدوحة", "المنامة", "مسقط", "بيروت", "الجزائر", "الرباط"
+      ],
+      "🛠️ أشياء وأدوات": [
+        "مكنسة", "تلفزيون", "ميكروويف", "غسالة", "ثلاجة", "مكواة", "كمبيوتر", "ساعة يد", "نظارة شمسية", "قلم رصاص", "دفتر",
+        "فرشاة أسنان", "مشط", "مقص", "مطرقة", "مفك", "سيارة", "طائرة", "دراجة", "كرسي", "طاولة", "سرير", "وسادة", "سجادة"
+      ],
+      "🌟 شخصيات عامة": [
+        "كريستيانو رونالدو", "ليونيل ميسي", "مايكل جاكسون", "ألبرت أينشتاين", "ستيف جوبز", "بيل غيتس", "محمد صلاح",
+        "مايك تايسون", "محمد علي كلاي", "أحمد الشقيري", "نجيب محفوظ", "ويليام شكسبير", "نيوتن", "شارلي شابلن", "مارلين مونرو"
+      ],
+      "👨‍⚕️ مهن": [
+        "طبيب", "مهندس", "معلم", "محامي", "طيار", "نجار", "حداد", "سباك", "طباخ", "حلاق", "شرطي", "إطفائي",
+        "مزارع", "خباز", "خياط", "جزار", "صياد", "رسام", "مغني", "ممثل", "رائد فضاء", "مراسل صحفي", "قاضي", "محاسب"
+      ],
+      "🦁 حيوانات": [
+        "أسد", "فيل", "زرافة", "نمر", "قرد", "دب", "تمساح", "ثعبان", "حصان", "كلب", "قطة", "فأر", "عصفور", "حمامة",
+        "نسر", "صقر", "نعامة", "بطريق", "قرش", "حوت", "دولفين", "سلحفاة", "ضفدع", "نحلة", "فراشة", "عنكبوت", "عقرب"
+      ]
+    };
+
+    let categories = Object.keys(DB);
+    let selectedCategories = new Set(categories); // default all
+    let activeWords = [];
+    
+    // Setup UI
+    const catGrid = document.getElementById('category-grid');
+    categories.forEach(cat => {
+      const spaceIdx = cat.indexOf(' ');
+      const emoji = cat.substring(0, spaceIdx);
+      const text = cat.substring(spaceIdx + 1);
+
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn selected';
+      btn.innerHTML = `<div class="cat-icon">${emoji}</div><div class="cat-text">${text}</div>`;
+      btn.onclick = () => {
+        if(selectedCategories.has(cat)) {
+          selectedCategories.delete(cat);
+          btn.classList.remove('selected');
+        } else {
+          selectedCategories.add(cat);
+          btn.classList.add('selected');
+        }
+      };
+      catGrid.appendChild(btn);
+    });
+
+    // ============================
+    // GAME LOGIC
+    // ============================
+    let team1 = { name: "", score: 0 };
+    let team2 = { name: "", score: 0 };
+    let currentTeam = 1; // 1 or 2
+    
+    let currentWord = "";
+    let currentCat = "";
+    
+    let mainTimer;
+    let stealTimer;
+    let mainTimeLeft = 120;
+    let stealTimeLeft = 30;
+    
+    let isProcessing = false;
+    function lockActions() {
+       if (isProcessing) return true;
+       isProcessing = true;
+       setTimeout(() => { isProcessing = false; }, 1000);
+       return false;
+    }
+
+    const sfxDing = document.getElementById('sfx-ding');
+    const sfxTick = document.getElementById('sfx-tick');
+    const sfxBuzzer = document.getElementById('sfx-buzzer');
+    const sfxSiren = document.getElementById('sfx-siren');
+
+    function updateScoreBoards() {
+      const html = `
+        <div class="team-score" ${currentTeam===1 ? 'style="border-color:#6366f1;"':''}>
+          <div class="team-name">${team1.name}</div>
+          <div class="team-pts">${team1.score}</div>
+        </div>
+        <div class="team-score" ${currentTeam===2 ? 'style="border-color:#6366f1;"':''}>
+          <div class="team-name">${team2.name}</div>
+          <div class="team-pts">${team2.score}</div>
+        </div>
+      `;
+      document.getElementById('sb-turn').innerHTML = html;
+      document.getElementById('sb-play').innerHTML = html;
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+    }
+
+    function startGame() {
+      if(lockActions()) return;
+      team1.name = document.getElementById('team1-name').value || "فريق أ";
+      team2.name = document.getElementById('team2-name').value || "فريق ب";
+      
+      if(selectedCategories.size === 0) {
+        alert("يجب اختيار فئة واحدة على الأقل!");
+        return;
+      }
+      
+      // Build word list
+      activeWords = [];
+      selectedCategories.forEach(cat => {
+        DB[cat].forEach(word => activeWords.push({word, cat}));
+      });
+      
+      // Add custom words
+      const customTxt = document.getElementById('custom-words').value;
+      if(customTxt.trim()) {
+        const words = customTxt.split(',').map(s => s.trim()).filter(s => s);
+        words.forEach(w => activeWords.push({word: w, cat: "✨ كلمة مخصصة"}));
+      }
+      
+      // Shuffle Fisher-Yates
+      for (let i = activeWords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [activeWords[i], activeWords[j]] = [activeWords[j], activeWords[i]];
+      }
+      
+      nextTurn();
+    }
+
+    let lastCategory = "";
+
+    function nextTurn() {
+      // Check win condition
+      if(team1.score >= 5 || team2.score >= 5) {
+        document.getElementById('winner-name').textContent = team1.score >= 5 ? team1.name : team2.name;
+        showScreen('winner');
+        return;
+      }
+    
+      if(activeWords.length === 0) {
+        alert("انتهت الكلمات! تعادل!");
+        return;
+      }
+      
+      // Anti-repetition logic for categories
+      let itemIndex = activeWords.length - 1;
+      if (activeWords.length > 1 && activeWords[itemIndex].cat === lastCategory) {
+        // Find another category if possible
+        for(let i = activeWords.length - 2; i >= 0; i--) {
+          if (activeWords[i].cat !== lastCategory) {
+            // Swap
+            [activeWords[i], activeWords[itemIndex]] = [activeWords[itemIndex], activeWords[i]];
+            break;
+          }
+        }
+      }
+
+      const item = activeWords.pop();
+      currentWord = item.word;
+      currentCat = item.cat;
+      lastCategory = currentCat;
+      
+      document.getElementById('turn-title').textContent = `دور ${currentTeam === 1 ? team1.name : team2.name}`;
+      document.getElementById('secret-word').textContent = currentWord;
+      document.getElementById('secret-cat').textContent = "الفئة: " + currentCat;
+      
+      hideWord(); // ensure hidden
+      updateScoreBoards();
+      showScreen('turn');
+    }
+
+    // Reveal Logic
+    function revealWord() {
+      document.getElementById('reveal-inst').style.display = 'none';
+      document.getElementById('secret-word').style.display = 'block';
+      document.getElementById('secret-cat').style.display = 'block';
+    }
+    function hideWord() {
+      document.getElementById('reveal-inst').style.display = 'block';
+      document.getElementById('secret-word').style.display = 'none';
+      document.getElementById('secret-cat').style.display = 'none';
+    }
+
+    function startPlayPhase() {
+      if(lockActions()) return;
+      document.getElementById('play-team-name').textContent = `${currentTeam === 1 ? team1.name : team2.name} يمثل الآن!`;
+      mainTimeLeft = 120;
+      updateMainTimerUI();
+      
+      document.getElementById('main-timer').classList.remove('danger');
+      sfxTick.pause();
+      sfxTick.currentTime = 0;
+      
+      showScreen('play');
+      
+      clearInterval(mainTimer);
+      mainTimer = setInterval(() => {
+        mainTimeLeft--;
+        updateMainTimerUI();
+        
+        if(mainTimeLeft === 10) {
+          document.getElementById('main-timer').classList.add('danger');
+          sfxTick.play().catch(e=>console.log(e));
+        }
+        
+        if(mainTimeLeft <= 0) {
+          clearInterval(mainTimer);
+          sfxTick.pause();
+          sfxBuzzer.play().catch(e=>console.log(e));
+          startStealPhase();
+        }
+      }, 1000);
+    }
+
+    function updateMainTimerUI() {
+      const m = Math.floor(mainTimeLeft / 60).toString().padStart(2, '0');
+      const s = (mainTimeLeft % 60).toString().padStart(2, '0');
+      document.getElementById('main-timer').textContent = `${m}:${s}`;
+    }
+
+    function surrender() {
+      if(lockActions()) return;
+      clearInterval(mainTimer);
+      sfxTick.pause();
+      startStealPhase();
+    }
+
+    function startStealPhase() {
+      sfxSiren.play().catch(e=>console.log(e));
+      const oppTeam = currentTeam === 1 ? team2.name : team1.name;
+      document.getElementById('steal-team-name').textContent = `لـ ${oppTeam}`;
+      
+      stealTimeLeft = 30;
+      document.getElementById('steal-timer').textContent = stealTimeLeft;
+      
+      showScreen('steal');
+      
+      clearInterval(stealTimer);
+      stealTimer = setInterval(() => {
+        stealTimeLeft--;
+        document.getElementById('steal-timer').textContent = stealTimeLeft;
+        if(stealTimeLeft <= 0) {
+          clearInterval(stealTimer);
+          sfxBuzzer.play().catch(e=>console.log(e));
+          wrongSteal();
+        }
+      }, 1000);
+    }
+
+    function correctAnswer(isSteal = false) {
+      if(lockActions()) return;
+      clearInterval(mainTimer);
+      clearInterval(stealTimer);
+      sfxTick.pause();
+      sfxSiren.pause();
+      sfxDing.play().catch(e=>console.log(e));
+      
+      if(isSteal) {
+        // opposite team gets point
+        if(currentTeam === 1) team2.score++; else team1.score++;
+      } else {
+        // current team gets point
+        if(currentTeam === 1) team1.score++; else team2.score++;
+      }
+      
+      // switch turn
+      currentTeam = currentTeam === 1 ? 2 : 1;
+      nextTurn();
+    }
+
+    function wrongSteal() {
+      if(lockActions()) return;
+      clearInterval(stealTimer);
+      sfxSiren.pause();
+      
+      // nobody gets points, switch turn
+      currentTeam = currentTeam === 1 ? 2 : 1;
+      nextTurn();
+    }
+
+  </script>
+
+  <script>
+    /* Auth Guard */
+    (function() {
+      try { var u = localStorage.getItem('rafiq_user'); if (!u) { window.location.replace('../index.html'); } } catch(e) {}
+    })();
+    /* Prevent context menu */
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+  </script>
+
+  <script>
+function confirmExit() { let modal = document.getElementById('custom-exit-modal'); if (!modal) { modal = document.createElement('div'); modal.id = 'custom-exit-modal'; modal.innerHTML = '<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); z-index:100000; display:flex; justify-content:center; align-items:center;"><div style="background:#1e293b; padding:30px; border-radius:24px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"><div style="font-size:50px; margin-bottom:10px; line-height:1;">🚪</div><h3 style="color:white; font-size:24px; font-weight:900; font-family:\'Tajawal\', sans-serif; margin-bottom:10px;">تأكيد الخروج</h3><p style="color:#94a3b8; font-size:16px; font-family:\'Tajawal\', sans-serif; margin-bottom:25px; line-height:1.5;">هل أنت متأكد من رغبتك بالخروج؟<br>سيتم فقدان التقدم الحالي في اللعبة.</p><div style="display:flex; gap:12px; justify-content:center;"><button onclick="window.location.href=\'../lobby.html\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#ef4444; color:white; box-shadow:0 6px 0 #b91c1c; transition:all 0.2s;">نعم، خروج</button><button onclick="document.getElementById(\'custom-exit-modal\').style.display=\'none\'" style="flex:1; padding:14px; border-radius:16px; font-weight:900; font-family:\'Tajawal\', sans-serif; font-size:16px; cursor:pointer; border:none; background:#475569; color:white; box-shadow:0 6px 0 #334155; transition:all 0.2s;">إلغاء</button></div></div></div><style>@keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } } #custom-exit-modal button:active { transform: translateY(4px); box-shadow: none !important; }</style>'; document.body.appendChild(modal); } modal.style.display = 'flex'; }
+</script>
+</body>
+
+</html>
